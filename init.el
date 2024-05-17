@@ -15,7 +15,9 @@
 ;;
 ;;; Code:
 
-;; --- Remove UI elements ---
+;; --- Global stuff ---
+
+;;  Remove UI elements 
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
@@ -23,26 +25,32 @@
 (menu-bar-mode -1)
 (set-fringe-mode 10)
 
-;; --- Theme ---
+;;  Theme 
 
-(load-theme 'tango-dark)
+(load-theme 'wombat)
 
-;; --- Font ---
+;;  Font 
 
 (set-face-attribute 'default nil :height 140)
+
+;; Make ESC quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; --- Package manager ---
 
 (require 'package)
-(setq package-enable-at-startup nil)
-(add-to-list 'package-archives '(("melpa" . "https://melpa.org/packages/")
-	     ("org", "https://orgmode.org/elpa/")
-	     ("elpa", "https://elpa.gnu.org/packages/")))
-(package-initialize)
 
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+(unless package-archive-contents
+ (package-refresh-contents))
+
+;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+   (package-install 'use-package))
 
 (require 'use-package)
 (setq use-package-always-ensure t)
@@ -95,24 +103,34 @@
   (evil-terminal-cursor-changer-activate) ; or (etcc-on)
   )
 
-;; --- Ivy search ---
+;; --- Ivy completion ---
 (use-package ivy
   :diminish
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
          ("TAB" . ivy-alt-done)	
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
          :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
          ("C-d" . ivy-switch-buffer-kill)
          :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
          ("C-d" . ivy-reverse-i-search-kill))
   :config
   (ivy-mode 1))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+	 ("C-x b" . counsel-ibuffer)
+	 ("C-x C-f" . counsel-find-file)
+	 :map minibuffer-local-map
+	 ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil) ;; don't start searches with ^
+  )
+
+;; --- Better modeline ---
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  )
 
 (provide 'init)
 ;;; init.el ends here
@@ -122,7 +140,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(ivy evil-terminal-cursor-changer evil-snipe evil-commentary evil-leader evil-surround evil-collection evil use-package)))
+   '(doom-modeline counsel ivy evil-terminal-cursor-changer evil-snipe evil-commentary evil-leader evil-surround evil-collection evil use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
