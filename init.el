@@ -43,6 +43,9 @@
 ;;  Font 
 (set-face-attribute 'default nil :height 140)
 
+;; Wrap on words
+(global-visual-line-mode t)
+
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
@@ -67,10 +70,12 @@
 
 ;; --- THEME ---
 ;; preview it with M-x counsel-load-theme
+
 (use-package doom-themes)
 (load-theme 'doom-gruvbox t)
 
 ;; --- KEY BINDINGS INC. EVIL LEADER ---
+;; This may hurt performance in mobile. Try using evil-leader instead.
 
 (use-package general
   :config
@@ -93,6 +98,12 @@
   (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state) ;; make C-g also exit input mode
+  
+  ;; j and k go down in lines you can see, not lines in the original file
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
 
@@ -127,6 +138,7 @@
   )
 
 ;; --- Ivy command completion ---
+;; Maybe try other packages and test for performance
 
 (use-package ivy
   :diminish
@@ -176,13 +188,38 @@
   (which-key-mode)
   (setq which-key-idle-delay 1))
 
+;; --- Hydra (Allows grouping several keybindings together so you access them with only one additional key) ---
+
+(use-package hydra)
+
+;; example
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
+
+(rune/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "scale text"))
+
 ;; --- Additional packages ---
 
 ;; Better modeline
-;; doom modeline was too heavy for mobile devices, and had font problems
-(use-package powerline
-  :config (powerline-default-theme)
-  )
+;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
+;;(use-package powerline
+;;  :config (powerline-default-theme)
+;;  )
+
+;; NOTE: The first time you load your configuration on a new machine, you'll
+;; need to run the following command interactively so that mode line icons
+;; display correctly:
+;;
+;; M-x all-the-icons-install-fonts
+(use-package all-the-icons)
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
 
 ;; rainbow mode for nested parentheses.
 (use-package rainbow-delimiters
