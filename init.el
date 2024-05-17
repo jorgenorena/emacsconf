@@ -70,6 +70,19 @@
 (use-package doom-themes)
 (load-theme 'doom-gruvbox t)
 
+;; --- KEY BINDINGS INC. EVIL LEADER ---
+
+(use-package general
+  :config
+  (general-create-definer rune/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+  (rune/leader-keys
+    "t"  '(:ignore t :which-key "toggles")
+    "tt" '(counsel-load-theme :which-key "choose theme")))
+
+
 ;; --- EVIL MODE ---
 
 (use-package evil
@@ -92,13 +105,6 @@
   :after evil
   :config
   (global-evil-surround-mode 1))
-
-(use-package evil-leader
-  :after evil
-  :ensure t
-  :config
-  (global-evil-leader-mode)
-  (evil-leader/set-leader "<SPC>"))
 
 (use-package evil-commentary
   :after evil
