@@ -25,12 +25,21 @@
 (menu-bar-mode -1)
 (set-fringe-mode 10)
 
-;;  Theme 
 
-(load-theme 'wombat)
+;; Display line numbers
+(column-number-mode)
+(global-display-line-numbers-mode t)
+(setq display-line-numbers-type 'relative)
+
+;; Disable line numbers for some modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;;  Font 
-
 (set-face-attribute 'default nil :height 140)
 
 ;; Make ESC quit prompts
@@ -55,10 +64,17 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+;; --- THEME ---
+;; preview it with M-x counsel-load-theme
+(use-package doom-themes)
+(load-theme 'doom-gruvbox)
+
 ;; --- EVIL MODE ---
 
 (use-package evil
   :init
+  (setq evil-split-window-below t)
+  (setq evil-vsplit-window-right t)
   (setq evil-want-integration t) ; This is optional, required for some packages
   (setq evil-want-keybinding nil)
   :config
@@ -103,7 +119,8 @@
   (evil-terminal-cursor-changer-activate) ; or (etcc-on)
   )
 
-;; --- Ivy completion ---
+;; --- Ivy command completion ---
+
 (use-package ivy
   :diminish
   :bind (("C-s" . swiper)
@@ -116,6 +133,11 @@
   :config
   (ivy-mode 1))
 
+(use-package ivy-rich
+  :after ivy
+  :init
+  (ivy-rich-mode 1))
+
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
 	 ("C-x b" . counsel-ibuffer)
@@ -126,11 +148,38 @@
   (setq ivy-initial-inputs-alist nil) ;; don't start searches with ^
   )
 
-;; --- Better modeline ---
+;; additional help from helpful
+(use-package helpful
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
 
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
+;; --- Which key ---
+
+(use-package which-key
+  :defer 0
+  :diminish which-key-mode
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 1))
+
+;; --- Additional packages ---
+
+;; Better modeline
+;; doom modeline was too heavy for mobile devices, and had font problems
+(use-package powerline
+  :config (powerline-default-theme)
   )
+
+;; rainbow mode for nested parentheses.
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 (provide 'init)
 ;;; init.el ends here
@@ -140,7 +189,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(doom-modeline counsel ivy evil-terminal-cursor-changer evil-snipe evil-commentary evil-leader evil-surround evil-collection evil use-package)))
+   '(doom-themes rainbow-delimiters powerline doom-modeline counsel ivy evil-terminal-cursor-changer evil-snipe evil-commentary evil-leader evil-surround evil-collection evil use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
