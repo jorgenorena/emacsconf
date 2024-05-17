@@ -24,7 +24,8 @@
 (tooltip-mode -1)
 (menu-bar-mode -1)
 (set-fringe-mode 10)
-
+(unless (display-graphic-p)
+  (xterm-mouse-mode 1))
 
 ;; Display line numbers
 (column-number-mode)
@@ -67,7 +68,7 @@
 ;; --- THEME ---
 ;; preview it with M-x counsel-load-theme
 (use-package doom-themes)
-(load-theme 'doom-gruvbox)
+(load-theme 'doom-gruvbox t)
 
 ;; --- EVIL MODE ---
 
@@ -188,6 +189,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" default))
  '(package-selected-packages
    '(doom-themes rainbow-delimiters powerline doom-modeline counsel ivy evil-terminal-cursor-changer evil-snipe evil-commentary evil-leader evil-surround evil-collection evil use-package)))
 (custom-set-faces
