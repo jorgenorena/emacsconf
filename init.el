@@ -19,6 +19,12 @@
 ;;
 ;;; Code:
 
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+(tooltip-mode -1)
+(menu-bar-mode -1)
+(set-fringe-mode 10)
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
@@ -59,11 +65,7 @@
   :ensure t
   :config
   (global-evil-leader-mode)
-  (evil-leader/set-leader "<SPC>")
-  (evil-leader/set-key
-    "e" 'find-file
-    "b" 'switch-to-buffer
-    "k" 'kill-buffer))
+  (evil-leader/set-leader "<SPC>"))
 
 (use-package evil-commentary
   :after evil
@@ -74,9 +76,11 @@
 (use-package evil-multiedit
   :after evil
   :ensure t
+  :config
   (evil-multiedit-default-keybinds))
 
 (use-package evil-snipe
+  :after evil
   :ensure t
   :init
   (evil-snipe-mode 1))  ; Globally enable evil-snipe
@@ -84,3 +88,16 @@
 
 (provide 'init)
 ;;; init.el ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(evil-snipe evil-commentary evil-leader evil-surround evil-collection evil use-package)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
