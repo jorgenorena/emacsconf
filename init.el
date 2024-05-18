@@ -40,8 +40,9 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-;;  Font 
-(set-face-attribute 'default nil :height 140)
+;;  Font
+;; For mobile use 140
+(set-face-attribute 'default nil :height 160)
 
 ;; Wrap on words
 (global-visual-line-mode t)
@@ -205,20 +206,24 @@
 ;; --- ORG MODE! ---
 
 (defun efs/org-font-setup ()
+  ;; Don't show line numbers
+  (global-display-line-numbers-mode nil)
+  
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
                           '(("^ *\\([-]\\) "
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
   ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
+  ;; Consider removing all this visual stuff for mobile
+  (dolist (face '((org-level-1 . 1.4)
+                  (org-level-2 . 1.3)
+                  (org-level-3 . 1.2)
+                  (org-level-4 . 1.1)
+                  (org-level-5 . 1.05)
+                  (org-level-6 . 1.05)
+                  (org-level-7 . 1.05)
+                  (org-level-8 . 1.05)))
     (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
@@ -231,7 +236,7 @@
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
 (use-package org
-  :hook (org-mode . efs/org-mode-setup)
+  :hook (org-mode . efs/org-font-setup)
   :config
   (setq org-ellipsis " ▾")
   (efs/org-font-setup))
