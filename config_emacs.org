@@ -3,6 +3,9 @@
 
 * Basic UI configuration
 
+This section configures basic UI settings that remove unneeded elements to make Emacs look a lot more minimal and modern.  If you're just getting started in Emacs, the menu bar might be helpful so you can remove the =(menu-bar-mode -1)= line if you'd like to still see that.
+
+
 #+begin_src emacs-lisp
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
@@ -37,6 +40,9 @@
 #+end_src
 
 * Package manager
+
+Emacs has a built in package manager but it doesn't make it easy to automatically install packages on a new system the first time you pull down your configuration.  [[https://github.com/jwiegley/use-package][use-package]] is a really helpful package used in this configuration to make it a lot easier to automate the installation and configuration of everything else we use.
+
 
 #+begin_src emacs-lisp
 
@@ -111,6 +117,8 @@
 
 * Key bindings
 
+This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil-mode]] for a Vi-like modal editing experience.  [[https://github.com/noctuid/general.el][general.el]] is used for easy keybinding configuration that integrates well with which-key.  [[https://github.com/emacs-evil/evil-collection][evil-collection]] is used to automatically configure various Emacs modes with Vi-like keybindings for evil-mode.
+
 ** General (the Evil Leader)
 
 #+begin_src emacs-lisp
@@ -130,31 +138,9 @@
 
 #+end_src
 
-** Hydra
+** Evil mode
 
-Allows you to group a repetitive task, or related tasks under one head. In this way you don't have to input several long chains, but a single chain that opens a menu of related commands ("you spawn a hydra").
-
-#+begin_src elisp
-
-  ;; --- Hydra (Allows grouping several keybindings together so you access them with only one additional key) ---
-
-  (use-package hydra)
-
-  ;; example
-  (defhydra hydra-text-scale (:timeout 4)
-    "scale text"
-    ("j" text-scale-increase "in")
-    ("k" text-scale-decrease "out")
-    ("f" nil "finished" :exit t))
-
-  (rune/leader-keys
-    "ts" '(hydra-text-scale/body :which-key "scale text"))
-
-#+end_src
-
-* Evil mode
-
-** Evil mode and collection
+*** Evil mode and collection
 
 #+begin_src emacs-lisp
 
@@ -185,7 +171,7 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
 
 #+end_src
 
-** Additional evil plugins
+*** Additional evil plugins
 
 #+begin_src emacs-lisp
 
@@ -214,6 +200,43 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
   (evil-terminal-cursor-changer-activate) ; or (etcc-on)
   )
   
+#+end_src
+
+** Hydra
+
+Allows you to group a repetitive task, or related tasks under one head. In this way you don't have to input several long chains, but a single chain that opens a menu of related commands ("you spawn a hydra").
+
+#+begin_src elisp
+
+  ;; --- Hydra (Allows grouping several keybindings together so you access them with only one additional key) ---
+
+  (use-package hydra)
+
+  ;; example
+  (defhydra hydra-text-scale (:timeout 4)
+    "scale text"
+    ("j" text-scale-increase "in")
+    ("k" text-scale-decrease "out")
+    ("f" nil "finished" :exit t))
+
+  (rune/leader-keys
+    "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+#+end_src
+
+** Which key
+
+#+begin_src emacs-lisp
+
+  ;; --- Which key ---
+
+  (use-package which-key
+    :defer 0
+    :diminish which-key-mode
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 1))
+
 #+end_src
 
 * Command completion and search
@@ -275,21 +298,6 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
-
-#+end_src
-
-* Which key
-
-#+begin_src emacs-lisp
-
-  ;; --- Which key ---
-
-  (use-package which-key
-    :defer 0
-    :diminish which-key-mode
-    :config
-    (which-key-mode)
-    (setq which-key-idle-delay 1))
 
 #+end_src
 
@@ -449,7 +457,7 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("el" . "src elisp"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
   (org-babel-do-load-languages
       'org-babel-load-languages
@@ -634,5 +642,76 @@ We also use [[https://github.com/sebastiencs/company-box][company-box]] to furth
   ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
   ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
   (use-package forge)
+
+#+end_src
+
+* Terminals
+
+** vterm
+
+[[https://github.com/akermu/emacs-libvterm/][vterm]] is an improved terminal emulator package which uses a compiled native module to interact with the underlying terminal applications.  This enables it to be much faster than =term-mode= and to also provide a more complete terminal emulation experience.
+
+Make sure that you have the [[https://github.com/akermu/emacs-libvterm/#requirements][necessary dependencies]] installed before trying to use =vterm= because there is a module that will need to be compiled before you can use it successfully.
+
+#+begin_src emacs-lisp
+
+  (use-package vterm
+    :commands vterm
+    :config
+    (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+    ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
+    (setq vterm-max-scrollback 10000))
+
+#+end_src
+
+** Eshell
+
+[[https://www.gnu.org/software/emacs/manual/html_mono/eshell.html#Contributors-to-Eshell][Eshell]] is Emacs' own shell implementation written in Emacs Lisp.  It provides you with a cross-platform implementation (even on Windows!) of the common GNU utilities you would find on Linux and macOS (=ls=, =rm=, =mv=, =grep=, etc).  It also allows you to call Emacs Lisp functions directly from the shell and you can even set up aliases (like aliasing =vim= to =find-file=).  Eshell is also an Emacs Lisp REPL which allows you to evaluate full expressions at the shell.
+
+The downsides to Eshell are that it can be harder to configure than other packages due to the particularity of where you need to set some options for them to go into effect, the lack of shell completions (by default) for some useful things like Git commands, and that REPL programs sometimes don't work as well.  However, many of these limitations can be dealt with by good configuration and installing external packages, so don't let that discourage you from trying it!
+
+*Useful key bindings:*
+
+- =C-c C-p= / =C-c C-n= - go back and forward in the buffer's prompts (also =[[= and =]]= with evil-mode)
+- =M-p= / =M-n= - go back and forward in the input history
+- =C-c C-u= - delete the current input string backwards up to the cursor
+- =counsel-esh-history= - A searchable history of commands typed into Eshell
+
+We will be covering Eshell more in future videos highlighting other things you can do with it.
+
+For more thoughts on Eshell, check out these articles by Pierre Neidhardt:
+- https://ambrevar.xyz/emacs-eshell/index.html
+- https://ambrevar.xyz/emacs-eshell-versus-shell/index.html
+
+#+begin_src emacs-lisp
+
+  (defun efs/configure-eshell ()
+    ;; Save command history when commands are entered
+    (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+    ;; Truncate buffer for performance
+    (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+    ;; Bind some useful keys for evil-mode
+    (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+    (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+    (evil-normalize-keymaps)
+
+    (setq eshell-history-size         10000
+          eshell-buffer-maximum-lines 10000
+          eshell-hist-ignoredups t
+          eshell-scroll-to-bottom-on-input t))
+
+  (use-package eshell-git-prompt)
+
+  (use-package eshell
+    :hook (eshell-first-time-mode . efs/configure-eshell)
+    :config
+
+    (with-eval-after-load 'esh-opt
+      (setq eshell-destroy-buffer-when-process-dies t)
+      (setq eshell-visual-commands '("htop" "zsh" "vim")))
+
+    (eshell-git-prompt-use-theme 'powerline))
 
 #+end_src
