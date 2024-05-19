@@ -1,3 +1,9 @@
+#+title Emacs from scratch configuration
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+
+* Basic UI configuration
+
+#+begin_src emacs-lisp
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (tooltip-mode -1)
@@ -28,6 +34,11 @@
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+#+end_src
+
+* Package manager
+
+#+begin_src emacs-lisp
 
 ;; --- Package manager ---
 
@@ -48,32 +59,61 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-;; Better modeline
-  ;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
-  ;;(use-package powerline
-  ;;  :config (powerline-default-theme)
-  ;;  )
+#+end_src
 
-  ;; NOTE: The first time you load your configuration on a new machine, you'll
-  ;; need to run the following command interactively so that mode line icons
-  ;; display correctly:
-  ;;
-  ;; M-x all-the-icons-install-fonts
-  (use-package all-the-icons)
+* UI
 
-  (use-package doom-modeline
-    :init (doom-modeline-mode 1)
-    :custom ((doom-modeline-height 15)))
+** Modeline
 
-;; rainbow mode for nested parentheses.
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+#+begin_src emacs-lisp
+
+
+  ;; Better modeline
+    ;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
+    ;;(use-package powerline
+    ;;  :config (powerline-default-theme)
+    ;;  )
+
+    ;; NOTE: The first time you load your configuration on a new machine, you'll
+    ;; need to run the following command interactively so that mode line icons
+    ;; display correctly:
+    ;;
+    ;; M-x all-the-icons-install-fonts
+    (use-package all-the-icons)
+
+    (use-package doom-modeline
+      :init (doom-modeline-mode 1)
+      :custom ((doom-modeline-height 15)))
+  
+#+end_src
+
+** Parentheses color
+
+#+begin_src emacs-lisp
+
+    ;; rainbow mode for nested parentheses.
+    (use-package rainbow-delimiters
+      :hook (prog-mode . rainbow-delimiters-mode))
+  
+#+end_src
+
+** Theme
+
+#+begin_src emacs-lisp 
 
 ;; --- THEME ---
 ;; preview it with M-x counsel-load-theme
 
 (use-package doom-themes)
 (load-theme 'doom-gruvbox t)
+
+#+end_src
+
+* Key bindings
+
+** General (the Evil Leader)
+
+#+begin_src emacs-lisp
 
 ;; --- KEY BINDINGS INC. EVIL LEADER ---
 ;; This may hurt performance in mobile. Try using evil-leader instead.
@@ -87,6 +127,36 @@
   (rune/leader-keys
     "t"  '(:ignore t :which-key "toggles")
     "tt" '(counsel-load-theme :which-key "choose theme")))
+
+#+end_src
+
+** Hydra
+
+Allows you to group a repetitive task, or related tasks under one head. In this way you don't have to input several long chains, but a single chain that opens a menu of related commands ("you spawn a hydra").
+
+#+begin_src elisp
+
+  ;; --- Hydra (Allows grouping several keybindings together so you access them with only one additional key) ---
+
+  (use-package hydra)
+
+  ;; example
+  (defhydra hydra-text-scale (:timeout 4)
+    "scale text"
+    ("j" text-scale-increase "in")
+    ("k" text-scale-decrease "out")
+    ("f" nil "finished" :exit t))
+
+  (rune/leader-keys
+    "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+#+end_src
+
+* Evil mode
+
+** Evil mode and collection
+
+#+begin_src emacs-lisp
 
 ;; --- EVIL MODE ---
 
@@ -112,6 +182,13 @@
   :config
   (evil-collection-init))
 
+
+#+end_src
+
+** Additional evil plugins
+
+#+begin_src emacs-lisp
+
 (use-package evil-surround
   :after evil
   :config
@@ -136,7 +213,15 @@
   :config
   (evil-terminal-cursor-changer-activate) ; or (etcc-on)
   )
+  
+#+end_src
 
+* Command completion and search
+
+** Ivy
+
+#+begin_src emacs-lisp
+  
 ;; --- Ivy command completion ---
 ;; Maybe try other packages and test for performance
 
@@ -157,6 +242,12 @@
   :init
   (ivy-rich-mode 1))
 
+#+end_src
+
+** Counsel
+
+#+begin_src emacs-lisp
+
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
 	 ("C-x b" . counsel-ibuffer)
@@ -166,6 +257,12 @@
   :config
   (setq ivy-initial-inputs-alist nil) ;; don't start searches with ^
   )
+
+#+end_src
+
+** Helpful
+
+#+begin_src emacs-lisp
 
 ;; additional help from helpful
 (use-package helpful
@@ -179,42 +276,65 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-;; --- Which key ---
+#+end_src
 
-(use-package which-key
-  :defer 0
-  :diminish which-key-mode
-  :config
-  (which-key-mode)
-  (setq which-key-idle-delay 1))
+* Which key
 
-(defun efs/org-font-setup ()
+#+begin_src emacs-lisp
 
-  ;; Replace list hyphen with dot
-  (font-lock-add-keywords 'org-mode
-			  '(("^ *\\([-]\\) "
-			     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+  ;; --- Which key ---
 
-  ;; Set faces for heading levels
-  ;; Consider removing all this visual stuff for mobile
-  (dolist (face '((org-level-1 . 1.4)
-		  (org-level-2 . 1.3)
-		  (org-level-3 . 1.2)
-		  (org-level-4 . 1.1)
-		  (org-level-5 . 1.05)
-		  (org-level-6 . 1.05)
-		  (org-level-7 . 1.05)
-		  (org-level-8 . 1.05)))
-    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+  (use-package which-key
+    :defer 0
+    :diminish which-key-mode
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 1))
 
-  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+#+end_src
+
+* Org mode
+
+** Basic org mode config
+
+First a few functions to improve the headings and the text. This doesn't seem to work on mobile. But I do plan to keep the replacement of hyphen with dots, the fixed pitch, and the ellipsis replaced with an arrow (if the fonts allow it).
+
+#+begin_src emacs-lisp
+
+  (defun efs/org-font-setup ()
+  
+    ;; Replace list hyphen with dot
+    (font-lock-add-keywords 'org-mode
+			    '(("^ *\\([-]\\) "
+			       (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+    ;; Set faces for heading levels
+    ;; Consider removing all this visual stuff for mobile
+    (dolist (face '((org-level-1 . 1.4)
+		    (org-level-2 . 1.3)
+		    (org-level-3 . 1.2)
+		    (org-level-4 . 1.1)
+		    (org-level-5 . 1.05)
+		    (org-level-6 . 1.05)
+		    (org-level-7 . 1.05)
+		    (org-level-8 . 1.05)))
+      (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+#+end_src
+
+Now the org-mode configuration. This has a bunch of configs for the agenda, tags, agenda modes, capture templates,
+
+#+begin_src emacs-lisp
+
 
 ;; --- ORG MODE! ---
 
@@ -319,21 +439,38 @@
 (use-package visual-fill-column
   :hook (org-mode . efs/org-mode-visual-fill))
 
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-(add-to-list 'org-structure-template-alist '("py" . "src python"))
-(add-to-list 'org-structure-template-alist '("el" . "src elisp"))
 
-(org-babel-do-load-languages
-    'org-babel-load-languages
-      '((emacs-lisp . t)
-	(python . t)))
+#+end_src
+** Configure Babel languages
 
-(defun efs/org-babel-tangle-config ()
- (when (string-equal (buffer-file-name)
-	(expand-file-name "~/.config/custom_emacs/config_emacs.org"))
-;; dynamic scoping to the rescue
-  (let ((org-confirm-babel-evaluate nil))
-   (org-babel-tangle))))
+#+begin_src emacs-lisp
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'efs/org-babel-tangle-config)))
+
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("el" . "src elisp"))
+
+  (org-babel-do-load-languages
+      'org-babel-load-languages
+	'((emacs-lisp . t)
+	  (python . t)))
+
+#+end_src
+
+** Auto tangle when saving org file
+
+#+begin_src emacs-lisp
+
+  (defun efs/org-babel-tangle-config ()
+   (when (string-equal (buffer-file-name)
+	  (expand-file-name "~/.config/custom_emacs/config_emacs.org"))
+  ;; dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+     (org-babel-tangle))))
+
+  (add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'efs/org-babel-tangle-config)))
+
+#+end_src
+
+
