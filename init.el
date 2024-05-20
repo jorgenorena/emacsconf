@@ -10,13 +10,15 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-(scroll-bar-mode -1)
+(setq inhibit-startup-message t)
+
+  (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (tooltip-mode -1)
 (menu-bar-mode -1)
 (set-fringe-mode 10)
 (unless (display-graphic-p)
-  (xterm-mouse-mode 1))
+    (xterm-mouse-mode 1))
 
 ;; Display line numbers
 (column-number-mode)
@@ -25,11 +27,11 @@
 
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                treemacs-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+		term-mode-hook
+		shell-mode-hook
+		treemacs-mode-hook
+		eshell-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;;  Font
 ;; For mobile use 140
