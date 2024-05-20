@@ -62,6 +62,45 @@ This section configures basic UI settings that remove unneeded elements to make 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 #+end_src
 
+* Other emacs inbuilt configs
+
+=recentf-mode= allows you to quickly look into recently opened files. Consider binding it to some key. There are packages to do this prettier, but this is inbuilt!
+
+Access minibuffer command history with =M-n= and =M-p=. History length impacts emacs startup time.
+
+With =save-place-mode= emacs remembers cursor position in the file.
+
+By default Emacs fills your init file with a bunch of additional settings at the bottom. Those are settings you set from the program itself. We put them in =custom-vars.el=.
+
+With =global-auto-revert-mode=, emacs will watch for changes in the files on disk and prompt the user.
+
+
+#+begin_src emacs-lisp
+
+  ; track recent filrs
+  (recentf-mode 1)
+
+  ; command minibuffer history
+  (setq history-length 25)
+  (savehist-mode 1)
+
+  ; remember cursor position
+  (save-place-mode 1)
+
+  ; Move customization vars to a separate file
+  (setq custom-file (locate-user-emacs-file "custom-vars.el"))
+  (load custom-file 'noerror 'nomessage)
+
+  ;; Avoid graphical dialog boxes
+  ;(setq use-dialog-box nil)
+
+  ; Watch open buffers for changes on disk
+  (global-auto-revert-mode 1)
+  ; For dired and othet non-file buffers
+  (setq global-auto-revert-non-file-buffers t)
+
+#+end_src
+
 * Package manager
 
 Emacs has a built in package manager but it doesn't make it easy to automatically install packages on a new system the first time you pull down your configuration.  [[https://github.com/jwiegley/use-package][use-package]] is a really helpful package used in this configuration to make it a lot easier to automate the installation and configuration of everything else we use.
