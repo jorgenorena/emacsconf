@@ -44,8 +44,7 @@ This section configures basic UI settings that remove unneeded elements to make 
 (setq display-line-numbers-type 'relative)
 
 ;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-		term-mode-hook
+(dolist (mode '(term-mode-hook
 		shell-mode-hook
 		treemacs-mode-hook
 		eshell-mode-hook))
@@ -152,6 +151,29 @@ You can also use =M-x auto-package-update-now= to update right now!
 
 * UI
 
+** Theme
+
+#+begin_src emacs-lisp 
+
+      ;; --- THEME ---
+      ;; preview it with M-x counsel-load-theme
+
+      ;;(use-package doom-themes)
+      ;;(load-theme 'doom-gruvbox t)
+
+      (use-package modus-themes
+      :ensure t
+      :config
+      ;; Add all your customizations prior to loading the themes
+      (setq modus-themes-italic-constructs t
+	    modus-themes-bold-constructs t
+           modus-themes-to-toggle '(modus-vivendi-tinted modus-operandi-tinted))
+
+      ;; Load the theme of your choice.
+      (load-theme 'modus-vivendi-tinted t))
+
+#+end_src
+
 ** Modeline
 
 #+begin_src emacs-lisp
@@ -159,20 +181,20 @@ You can also use =M-x auto-package-update-now= to update right now!
 
   ;; Better modeline
     ;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
-    ;;(use-package powerline
-    ;;  :config (powerline-default-theme)
-    ;;  )
+    (use-package powerline
+      :config (powerline-default-theme)
+      )
 
     ;; NOTE: The first time you load your configuration on a new machine, you'll
     ;; need to run the following command interactively so that mode line icons
     ;; display correctly:
     ;;
     ;; M-x all-the-icons-install-fonts
-    (use-package all-the-icons)
+    ;;(use-package all-the-icons)
 
-    (use-package doom-modeline
-      :init (doom-modeline-mode 1)
-      :custom ((doom-modeline-height 15)))
+    ;; (use-package doom-modeline
+    ;;   :init (doom-modeline-mode 1)
+    ;;   :custom ((doom-modeline-height 15)))
   
 #+end_src
 
@@ -184,18 +206,6 @@ You can also use =M-x auto-package-update-now= to update right now!
     (use-package rainbow-delimiters
       :hook (prog-mode . rainbow-delimiters-mode))
   
-#+end_src
-
-** Theme
-
-#+begin_src emacs-lisp 
-
-;; --- THEME ---
-;; preview it with M-x counsel-load-theme
-
-(use-package doom-themes)
-(load-theme 'doom-gruvbox t)
-
 #+end_src
 
 * Key bindings

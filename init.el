@@ -26,8 +26,7 @@
 (setq display-line-numbers-type 'relative)
 
 ;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-		term-mode-hook
+(dolist (mode '(term-mode-hook
 		shell-mode-hook
 		treemacs-mode-hook
 		eshell-mode-hook))
@@ -42,6 +41,28 @@
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+; track recent filrs
+(recentf-mode 1)
+
+; command minibuffer history
+(setq history-length 25)
+(savehist-mode 1)
+
+; remember cursor position
+(save-place-mode 1)
+
+; Move customization vars to a separate file
+(setq custom-file (locate-user-emacs-file "custom-vars.el"))
+(load custom-file 'noerror 'nomessage)
+
+;; Avoid graphical dialog boxes
+;(setq use-dialog-box nil)
+
+; Watch open buffers for changes on disk
+(global-auto-revert-mode 1)
+; For dired and othet non-file buffers
+(setq global-auto-revert-non-file-buffers t)
 
 ;; --- Package manager ---
 
@@ -72,32 +93,43 @@
   (auto-package-update-maybe)
   (auto-package-update-at-time "09:00"))
 
+;; --- THEME ---
+;; preview it with M-x counsel-load-theme
+
+;;(use-package doom-themes)
+;;(load-theme 'doom-gruvbox t)
+
+(use-package modus-themes
+:ensure t
+:config
+;; Add all your customizations prior to loading the themes
+(setq modus-themes-italic-constructs t
+      modus-themes-bold-constructs t
+     modus-themes-to-toggle '(modus-vivendi-tinted modus-operandi-tinted))
+
+;; Load the theme of your choice.
+(load-theme 'modus-vivendi-tinted t))
+
 ;; Better modeline
   ;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
-  ;;(use-package powerline
-  ;;  :config (powerline-default-theme)
-  ;;  )
+  (use-package powerline
+    :config (powerline-default-theme)
+    )
 
   ;; NOTE: The first time you load your configuration on a new machine, you'll
   ;; need to run the following command interactively so that mode line icons
   ;; display correctly:
   ;;
   ;; M-x all-the-icons-install-fonts
-  (use-package all-the-icons)
+  ;;(use-package all-the-icons)
 
-  (use-package doom-modeline
-    :init (doom-modeline-mode 1)
-    :custom ((doom-modeline-height 15)))
+  ;; (use-package doom-modeline
+  ;;   :init (doom-modeline-mode 1)
+  ;;   :custom ((doom-modeline-height 15)))
 
 ;; rainbow mode for nested parentheses.
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
-
-;; --- THEME ---
-;; preview it with M-x counsel-load-theme
-
-(use-package doom-themes)
-(load-theme 'doom-gruvbox t)
 
 ;; --- KEY BINDINGS INC. EVIL LEADER ---
 ;; This may hurt performance in mobile. Try using evil-leader instead.
