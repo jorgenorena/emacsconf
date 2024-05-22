@@ -1,18 +1,18 @@
 ;; The default is 800 kilobytes.  Measured in bytes.
 (setq gc-cons-threshold (* 50 1000 1000))
 
-(defun efs/display-startup-time ()
+(defun gdisplay-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
            (format "%.2f seconds"
                    (float-time
                      (time-subtract after-init-time before-init-time)))
            gcs-done))
 
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
+(add-hook 'emacs-startup-hook #'gdisplay-startup-time)
 
 (setq inhibit-startup-message t)
 
-  (scroll-bar-mode -1)
+(scroll-bar-mode -1)
 (tool-bar-mode -1)
 (tooltip-mode -1)
 (menu-bar-mode -1)
@@ -141,8 +141,29 @@
     :prefix "SPC"
     :global-prefix "C-SPC")
   (rune/leader-keys
-    "t"  '(:ignore t :which-key "toggles")
-    "tt" '(counsel-load-theme :which-key "choose theme")))
+    "t"  '(:ignore t :which-key "Toggles")
+    "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
+    "SPC" '(counsel-M-x :which-key "M-x")
+    "." '(counsel-find-file :which-key "Find file")
+    ;; Buffers
+    "b" '(:ignore t :which-key "Buffers")
+    "bb" '(counsel-ibuffer :which-key "Choose buffer")
+    "bk" '(kill-current-buffer :which-key "Kill current buffer")
+    "bn" '(next-buffer :which-key "Next buffer")
+    "bp" '(previous-buffer :which-key "Previous buffer")
+    ;; Windows
+    "w" '(:ignore t :which-key "Windows")
+    "wc" '(evil-window-delete :which-key "Close window")
+    "wn" '(evil-window-new :which-key "New window")
+    "ws" '(evil-window-split :which-key "Horizontal split")
+    "wv" '(evil-window-vsplit :which-key "Vertical split")
+    "wh" '(evil-window-left :which-key "Move to window left")
+    "wj" '(evil-window-down :which-key "Move to window down")
+    "wk" '(evil-window-up :which-key "Move to window up")
+    "wl" '(evil-window-right :which-key "Move to window right")
+    ;; Org-mode
+    "ot" '(org-babel-tangle :which-key "Tangle file")
+  ))
 
 ;; --- EVIL MODE ---
 
@@ -244,7 +265,7 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(defun efs/org-font-setup ()
+(defun gorg-font-setup ()
 
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
@@ -278,7 +299,7 @@
 (use-package org
   :pin org
   :commands (org-capture org-agenda)
-  :hook (org-mode . efs/org-font-setup)
+  :hook (org-mode . gorg-font-setup)
   :config
   (setq org-ellipsis " ▾")
 
@@ -361,20 +382,20 @@
   (define-key global-map (kbd "C-c j")
     (lambda () (interactive) (org-capture nil "jj")))
 
-  (efs/org-font-setup))
+  (gorg-font-setup))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-(defun efs/org-mode-visual-fill ()
+(defun gorg-mode-visual-fill ()
   (setq visual-fill-column-width 100
 	visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
-  :hook (org-mode . efs/org-mode-visual-fill))
+  :hook (org-mode . gorg-mode-visual-fill))
 
 (with-eval-after-load 'org ;defer until org loads
   (require 'org-tempo)
@@ -388,22 +409,22 @@
 	  (python . t)))
 )
 
-(defun efs/org-babel-tangle-config ()
+(defun gorg-babel-tangle-config ()
  (when (string-equal (buffer-file-name)
 	(expand-file-name "~/.config/custom_emacs/config_emacs.org"))
 ;; dynamic scoping to the rescue
   (let ((org-confirm-babel-evaluate nil))
    (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'efs/org-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'gorg-babel-tangle-config)))
 
-(defun efs/lsp-mode-setup ()
+(defun glsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
-  :hook (lsp-mode . efs/lsp-mode-setup)
+  :hook (lsp-mode . glsp-mode-setup)
   :init
   (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
   :config
@@ -474,7 +495,7 @@
   ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
   (setq vterm-max-scrollback 10000))
 
-(defun efs/configure-eshell ()
+(defun gconfigure-eshell ()
   ;; Save command history when commands are entered
   (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
 
@@ -495,7 +516,7 @@
   :after eshell)
 
 (use-package eshell
-  :hook (eshell-first-time-mode . efs/configure-eshell)
+  :hook (eshell-first-time-mode . gconfigure-eshell)
   :config
 
   (with-eval-after-load 'esh-opt
