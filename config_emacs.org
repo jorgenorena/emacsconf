@@ -1,10 +1,49 @@
 #+title Emacs from scratch configuration
 #+AUTHOR: Jorge Norena
+#+DESCRIPTION: Jorge's custom Emacs config.
+#+STARTUP: showeverything
+#+Options: toc:2
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+
+* Table of Contents :toc:
+- [[#startup-performance][Startup performance]]
+- [[#basic-ui-configuration][Basic UI configuration]]
+- [[#other-emacs-inbuilt-configs][Other emacs inbuilt configs]]
+- [[#package-manager][Package manager]]
+  - [[#auto-update][Auto update]]
+- [[#ui][UI]]
+  - [[#theme][Theme]]
+  - [[#modeline][Modeline]]
+  - [[#parentheses-color][Parentheses color]]
+- [[#key-bindings][Key bindings]]
+  - [[#general-the-evil-leader][General (the Evil Leader)]]
+  - [[#evil-mode][Evil mode]]
+  - [[#hydra][Hydra]]
+  - [[#which-key][Which key]]
+- [[#command-completion-and-search][Command completion and search]]
+  - [[#ivy][Ivy]]
+  - [[#counsel][Counsel]]
+  - [[#helpful][Helpful]]
+- [[#org-mode][Org mode]]
+  - [[#basic-org-mode-config][Basic org mode config]]
+  - [[#table-of-contents][Table of contents]]
+  - [[#configure-babel-languages][Configure Babel languages]]
+  - [[#auto-tangle-when-saving-org-file-not-working][Auto tangle when saving org file (not working)]]
+- [[#development][Development]]
+  - [[#ide-features-with-lsp-mode][IDE Features with lsp-mode]]
+  - [[#company-mode][Company Mode]]
+  - [[#projectile][Projectile]]
+  - [[#magit][Magit]]
+- [[#terminals][Terminals]]
+  - [[#vterm][vterm]]
+  - [[#eshell][Eshell]]
+- [[#file-management][File Management]]
+  - [[#dired][Dired]]
+- [[#runtime-performance][Runtime Performance]]
 
 * Startup performance
 
-Measure startup time and increase the tgresshold for garbage collection.
+Measure startup time and increase the thresshold for garbage collection.
 
 #+begin_src emacs-lisp
 
@@ -53,7 +92,7 @@ This section configures basic UI settings that remove unneeded elements to make 
 
 ;;  Font
 ;; For mobile use 140
-(set-face-attribute 'default nil :height 160)
+(set-face-attribute 'default nil :height 140)
 
 ;; Wrap on words
 (global-visual-line-mode t)
@@ -137,7 +176,7 @@ The auto-package-update package helps us keep our Emacs packages up to date!  It
 
 You can also use =M-x auto-package-update-now= to update right now!
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 
   (use-package auto-package-update
     :custom
@@ -149,6 +188,8 @@ You can also use =M-x auto-package-update-now= to update right now!
     (auto-package-update-at-time "09:00"))
 
 #+end_src
+
+Since it takes a lot of time to startup, I've disabled it.
 
 * UI
 
@@ -217,6 +258,11 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
 
 #+begin_src emacs-lisp
 
+  ;; A function used below
+  (defun reload-init-file ()
+    (interactive)
+    (load-file user-init-file))
+
   ;; --- KEY BINDINGS INC. EVIL LEADER ---
   ;; This may hurt performance in mobile. Try using evil-leader instead.
 
@@ -227,16 +273,19 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
       :prefix "SPC"
       :global-prefix "C-SPC")
     (rune/leader-keys
-      "t"  '(:ignore t :which-key "Toggles")
-      "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
       "SPC" '(counsel-M-x :which-key "M-x")
       "." '(counsel-find-file :which-key "Find file")
+      "TAB TAB" '(comment-line :which-key "Comment line")
       ;; Buffers
       "b" '(:ignore t :which-key "Buffers")
       "bb" '(counsel-ibuffer :which-key "Choose buffer")
       "bk" '(kill-current-buffer :which-key "Kill current buffer")
       "bn" '(next-buffer :which-key "Next buffer")
       "bp" '(previous-buffer :which-key "Previous buffer")
+      "br" '(revert-buffer :which-key "Reload buffer")
+      ;; Evaluate elisp
+      "e" '(:ignore t :which-key "Evaluate elisp")
+      "eb" '(evaluate-buffer :which-key "Evaluate buffer")
       ;; Windows
       "w" '(:ignore t :which-key "Windows")
       "wc" '(evil-window-delete :which-key "Close window")
@@ -249,6 +298,15 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
       "wl" '(evil-window-right :which-key "Move to window right")
       ;; Org-mode
       "ot" '(org-babel-tangle :which-key "Tangle file")
+      ;; Help!
+      "h" '(:ignore t :whichk-key "Help")
+      "hf" '(describe-function :which-key "Describe function")
+      "hv" '(describe-variable :which-key "Describe variable")
+      "hrr" '(reload-init-file :which-key "Reload emacs config")
+      ;; Toggles
+      "t"  '(:ignore t :which-key "Toggles")
+      "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
+      "tl" '(display-line-numbers-mode :which-key "Toggle line numbers")
     ))
 
 #+end_src
@@ -325,7 +383,8 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
 
   ;; --- Hydra (Allows grouping several keybindings together so you access them with only one additional key) ---
 
-  (use-package hydra)
+  (use-package hydra
+    :after general)
 
   ;; example
   (defhydra hydra-text-scale (:timeout 4)
@@ -350,7 +409,18 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
     :diminish which-key-mode
     :config
     (which-key-mode)
-    (setq which-key-idle-delay 1))
+    (setq which-key-side-window-location 'bottom
+          which-key-sort-order #'which-key-key-order-alpha
+          which-key-sort-uppercase-first nil
+          which-key-add-column-padding 1
+          which-key-max-display-columns nil
+          which-key-min-display-lines 6
+          which-key-side-window-slot -10
+          which-key-side-window-max-height 0.25
+          which-key-idle-delay 0.2
+          which-key-max-description-length 25
+          which-key-allow-imprecise-window-fit t
+          ))
 
 #+end_src
 
@@ -424,7 +494,7 @@ First a few functions to improve the headings and the text. This doesn't seem to
 
 #+begin_src emacs-lisp
 
-  (defun gorg-font-setup ()
+  (defun org-font-setup ()
   
     ;; Replace list hyphen with dot
     (font-lock-add-keywords 'org-mode
@@ -465,9 +535,10 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
   (use-package org
     :pin org
     :commands (org-capture org-agenda)
-    :hook (org-mode . gorg-font-setup)
+    :hook (org-mode . org-font-setup)
     :config
     (setq org-ellipsis " ▾")
+    (electric-indent-mode -1) ;; if this doesn't work, try doing it after the hook below
 
     ;; What does this do?
     (setq org-agenda-start-with-log-mode t)
@@ -548,8 +619,9 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
     (define-key global-map (kbd "C-c j")
       (lambda () (interactive) (org-capture nil "jj")))
 
-    (gorg-font-setup))
+    (org-font-setup))
 
+  (add-hook 'org-mode-hook 'org-indent-mode)
   (use-package org-bullets
     :hook (org-mode . org-bullets-mode)
     :custom
@@ -565,7 +637,37 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
 
 
 #+end_src
+** Table of contents
+
+#+begin_src emacs-lisp
+
+(use-package toc-org
+  :commands toc-org-enable
+  :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+#+end_src
+
 ** Configure Babel languages
+
+Org-tempo is not a separate package but a module within org that can be enabled.  Org-tempo allows for '<s' followed by TAB to expand to a begin_src tag.  Other expansions available include:
+
+| Typing the below + TAB | Expands to ...                           |
+|------------------------+------------------------------------------|
+| <a                     | '#+BEGIN_EXPORT ascii' … '#+END_EXPORT   |
+| <c                     | '#+BEGIN_CENTER' … '#+END_CENTER'        |
+| <C                     | '#+BEGIN_COMMENT' … '#+END_COMMENT'      |
+| <e                     | '#+BEGIN_EXAMPLE' … '#+END_EXAMPLE'      |
+| <E                     | '#+BEGIN_EXPORT' … '#+END_EXPORT'        |
+| <h                     | '#+BEGIN_EXPORT html' … '#+END_EXPORT'   |
+| <l                     | '#+BEGIN_EXPORT latex' … '#+END_EXPORT'  |
+| <q                     | '#+BEGIN_QUOTE' … '#+END_QUOTE'          |
+| <s                     | '#+BEGIN_SRC' … '#+END_SRC'              |
+| <v                     | '#+BEGIN_VERSE' … '#+END_VERSE'          |
+| <sh                    | '#+begin_src shell' ... '#+end_src'      |
+| <py                    | '#+begin_src python' ... '#+end_src'     |
+| <el                    | '#+begin_src emacs-lisp' ... '#+end_src' |
+
+The last we added below
 
 #+begin_src emacs-lisp
 
@@ -582,21 +684,20 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
 )
 #+end_src
 
-** Auto tangle when saving org file
+** Auto tangle when saving org file (not working)
 
 #+begin_src emacs-lisp
 
-  (defun gorg-babel-tangle-config ()
+  (defun org-babel-tangle-config ()
    (when (string-equal (buffer-file-name)
 	  (expand-file-name "~/.config/custom_emacs/config_emacs.org"))
   ;; dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
      (org-babel-tangle))))
 
-  (add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'gorg-babel-tangle-config)))
+  (add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'org-babel-tangle-config)))
 
 #+end_src
-
 
 * Development
 
@@ -734,6 +835,7 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
 #+begin_src emacs-lisp
 
   (use-package pyvenv
+    :after python-mode
     :config
     (pyvenv-mode 1))
 

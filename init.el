@@ -34,7 +34,7 @@
 
 ;;  Font
 ;; For mobile use 140
-(set-face-attribute 'default nil :height 160)
+(set-face-attribute 'default nil :height 140)
 
 ;; Wrap on words
 (global-visual-line-mode t)
@@ -84,15 +84,6 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose t)
 
-(use-package auto-package-update
-  :custom
-  (auto-package-update-interval 7)
-  (auto-package-update-prompt-before-update t)
-  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe)
-  (auto-package-update-at-time "09:00"))
-
 ;; --- THEME ---
 ;; preview it with M-x counsel-load-theme
 
@@ -131,6 +122,11 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; A function used below
+(defun reload-init-file ()
+  (interactive)
+  (load-file user-init-file))
+
 ;; --- KEY BINDINGS INC. EVIL LEADER ---
 ;; This may hurt performance in mobile. Try using evil-leader instead.
 
@@ -141,16 +137,19 @@
     :prefix "SPC"
     :global-prefix "C-SPC")
   (rune/leader-keys
-    "t"  '(:ignore t :which-key "Toggles")
-    "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
     "SPC" '(counsel-M-x :which-key "M-x")
     "." '(counsel-find-file :which-key "Find file")
+    "TAB TAB" '(comment-line :which-key "Comment line")
     ;; Buffers
     "b" '(:ignore t :which-key "Buffers")
     "bb" '(counsel-ibuffer :which-key "Choose buffer")
     "bk" '(kill-current-buffer :which-key "Kill current buffer")
     "bn" '(next-buffer :which-key "Next buffer")
     "bp" '(previous-buffer :which-key "Previous buffer")
+    "br" '(revert-buffer :which-key "Reload buffer")
+    ;; Evaluate elisp
+    "e" '(:ignore t :which-key "Evaluate elisp")
+    "eb" '(evaluate-buffer :which-key "Evaluate buffer")
     ;; Windows
     "w" '(:ignore t :which-key "Windows")
     "wc" '(evil-window-delete :which-key "Close window")
@@ -163,6 +162,15 @@
     "wl" '(evil-window-right :which-key "Move to window right")
     ;; Org-mode
     "ot" '(org-babel-tangle :which-key "Tangle file")
+    ;; Help!
+    "h" '(:ignore t :whichk-key "Help")
+    "hf" '(describe-function :which-key "Describe function")
+    "hv" '(describe-variable :which-key "Describe variable")
+    "hrr" '(reload-init-file :which-key "Reload emacs config")
+    ;; Toggles
+    "t"  '(:ignore t :which-key "Toggles")
+    "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
+    "tl" '(display-line-numbers-mode :which-key "Toggle line numbers")
   ))
 
 ;; --- EVIL MODE ---
@@ -221,7 +229,18 @@
   :diminish which-key-mode
   :config
   (which-key-mode)
-  (setq which-key-idle-delay 1))
+  (setq which-key-side-window-location 'bottom
+        which-key-sort-order #'which-key-key-order-alpha
+        which-key-sort-uppercase-first nil
+        which-key-add-column-padding 1
+        which-key-max-display-columns nil
+        which-key-min-display-lines 6
+        which-key-side-window-slot -10
+        which-key-side-window-max-height 0.25
+        which-key-idle-delay 0.2
+        which-key-max-description-length 25
+        which-key-allow-imprecise-window-fit t
+        ))
 
 ;; --- Ivy command completion ---
 ;; Maybe try other packages and test for performance
@@ -265,7 +284,7 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(defun gorg-font-setup ()
+(defun org-font-setup ()
 
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
@@ -299,9 +318,10 @@
 (use-package org
   :pin org
   :commands (org-capture org-agenda)
-  :hook (org-mode . gorg-font-setup)
+  :hook (org-mode . org-font-setup)
   :config
   (setq org-ellipsis " ▾")
+  (electric-indent-mode -1) ;; if this doesn't work, try doing it after the hook below
 
   ;; What does this do?
   (setq org-agenda-start-with-log-mode t)
@@ -382,8 +402,9 @@
   (define-key global-map (kbd "C-c j")
     (lambda () (interactive) (org-capture nil "jj")))
 
-  (gorg-font-setup))
+  (org-font-setup))
 
+(add-hook 'org-mode-hook 'org-indent-mode)
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
   :custom
@@ -397,6 +418,10 @@
 (use-package visual-fill-column
   :hook (org-mode . gorg-mode-visual-fill))
 
+(use-package toc-org
+  :commands toc-org-enable
+  :init (add-hook 'org-mode-hook 'toc-org-enable))
+
 (with-eval-after-load 'org ;defer until org loads
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -409,14 +434,14 @@
 	  (python . t)))
 )
 
-(defun gorg-babel-tangle-config ()
+(defun org-babel-tangle-config ()
  (when (string-equal (buffer-file-name)
 	(expand-file-name "~/.config/custom_emacs/config_emacs.org"))
 ;; dynamic scoping to the rescue
   (let ((org-confirm-babel-evaluate nil))
    (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'gorg-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'org-babel-tangle-config)))
 
 (defun glsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -468,6 +493,7 @@
   (require 'dap-python))
 
 (use-package pyvenv
+  :after python-mode
   :config
   (pyvenv-mode 1))
 
