@@ -802,6 +802,14 @@ Try these commands with =M-x=:
 
 *** Python
 
+See the following:
+
+- [[https://www.emacswiki.org/emacs/PythonProgrammingInEmacs][Emacs wiki on python programming]].
+- [[https://sqrtminusone.xyz/posts/2021-05-01-org-python/][Replacing Jupyter notebook with org mode]].
+- [[https://martibosch.github.io/jupyter-emacs-universe/][Jupyter in the Emacs universe]].
+
+It seems that the closed-source =pyright= is faster. Consider using that if =pyls= is too slow.
+
 We use =lsp-mode= and =dap-mode= to provide a more complete development environment for Python in Emacs.  Check out [[https://emacs-lsp.github.io/lsp-mode/page/lsp-pyls/][the =pyls= configuration]] in the =lsp-mode= documentation for more details.
 
 Make sure you have the =pyls= language server installed before trying =lsp-mode=!
@@ -809,6 +817,7 @@ Make sure you have the =pyls= language server installed before trying =lsp-mode=
 #+begin_src sh :tangle no
 
 pip install --user "python-language-server[all]"
+pip install --user "debugpy"
 
 #+end_src
 
@@ -825,19 +834,39 @@ There are a number of other language servers for Python so if you find that =pyl
     ;; (dap-python-executable "python3")
     (dap-python-debugger 'debugpy)
     :config
-    (require 'dap-python))
+    (setq lsp-pylsp-server-command "pylsp")
+    (setq lsp-pylsp-plugins-jedi-completion-enabled t)  ; Enable Jedi completion setup
+    (setq lsp-pylsp-plugins-pylint-enabled t)           ; Enable Pylint for linting
+    (setq lsp-pylsp-plugins-flake8-enabled t)           ; Optionally, enable Flake8 for linting
+ 
+    (require 'dap-python)
+    (dap-python-setup))
 
 
 #+end_src
 
 You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =pyvenv-activate= command should configure Emacs to cause =lsp-mode= and =dap-mode= to use the virtual environment when they are loaded, just select the path to your virtual environment before loading your project.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 
   (use-package pyvenv
     :after python-mode
     :config
     (pyvenv-mode 1))
+
+#+end_src
+
+We instead use Anaconda, so use the following
+
+#+begin_src emacs-lisp
+
+(use-package conda
+  :after python-mode
+  :config
+  (setq conda-env-subdirectory "envs")
+
+  (unless (getenv "CONDA_DEFAULT_ENV")
+    (conda-env-activate "base")))
 
 #+end_src
 
