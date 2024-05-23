@@ -6,8 +6,9 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
 * Table of Contents :toc:
+- [[#issues][Issues]]
 - [[#startup-performance][Startup performance]]
-- [[#basic-ui-configuration][Basic UI configuration]]
+- [[#basic-configuration][Basic configuration]]
 - [[#other-emacs-inbuilt-configs][Other emacs inbuilt configs]]
 - [[#package-manager][Package manager]]
   - [[#auto-update][Auto update]]
@@ -41,6 +42,17 @@
   - [[#dired][Dired]]
 - [[#runtime-performance][Runtime Performance]]
 
+* Issues
+
+- Need to check Python installation.
+- Julia installation
+- C/C++
+- Setup Acutex
+- Improve orgmode
+- orgmode links don't work!
+- Fonts are ugly on a graphical interface.
+- Which keys overlaps with the minibuffer
+
 * Startup performance
 
 Measure startup time and increase the thresshold for garbage collection.
@@ -61,10 +73,11 @@ Measure startup time and increase the thresshold for garbage collection.
 
 #+end_src
 
-* Basic UI configuration
+* Basic configuration
 
-This section configures basic UI settings that remove unneeded elements to make Emacs look a lot more minimal and modern.  If you're just getting started in Emacs, the menu bar might be helpful so you can remove the =(menu-bar-mode -1)= line if you'd like to still see that.
+This section configures basic settings that remove unneeded elements to make Emacs look a lot more minimal and modern.  If you're just getting started in Emacs, the menu bar might be helpful so you can remove the =(menu-bar-mode -1)= line if you'd like to still see that.
 
+We also add a path for custom script files in this config.
 
 #+begin_src emacs-lisp
 
@@ -99,6 +112,10 @@ This section configures basic UI settings that remove unneeded elements to make 
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+;; Add custom scripts to path
+(add-to-list 'load-path "~/.config/emacs_custom/scripts/")
+
 #+end_src
 
 * Other emacs inbuilt configs
@@ -195,6 +212,8 @@ Since it takes a lot of time to startup, I've disabled it.
 
 ** Theme
 
+A nice alternative is to use the [[https://emacsfodder.github.io/emacs-theme-editor/][Theme creator]].
+
 #+begin_src emacs-lisp 
 
       ;; --- THEME ---
@@ -263,6 +282,9 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
     (interactive)
     (load-file user-init-file))
 
+  ;; A code to move buffers around
+  (require 'buffer-move)
+
   ;; --- KEY BINDINGS INC. EVIL LEADER ---
   ;; This may hurt performance in mobile. Try using evil-leader instead.
 
@@ -283,6 +305,10 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
       "bn" '(next-buffer :which-key "Next buffer")
       "bp" '(previous-buffer :which-key "Previous buffer")
       "br" '(revert-buffer :which-key "Reload buffer")
+      "wH" '(buf-move-left :which-key "Move buffer left")
+      "wJ" '(buf-move-down :which-key "Move buffer down")
+      "wK" '(buf-move-up :which-key "Move buffer up")
+      "wL" '(buf-move-right :which-key "Move buffer right")
       ;; Evaluate elisp
       "e" '(:ignore t :which-key "Evaluate elisp")
       "eb" '(evaluate-buffer :which-key "Evaluate buffer")
@@ -296,10 +322,8 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
       "wj" '(evil-window-down :which-key "Move to window down")
       "wk" '(evil-window-up :which-key "Move to window up")
       "wl" '(evil-window-right :which-key "Move to window right")
-      ;; Org-mode
-      "ot" '(org-babel-tangle :which-key "Tangle file")
       ;; Help!
-      "h" '(:ignore t :whichk-key "Help")
+      "h" '(:ignore t :which-key "Help")
       "hf" '(describe-function :which-key "Describe function")
       "hv" '(describe-variable :which-key "Describe variable")
       "hrr" '(reload-init-file :which-key "Reload emacs config")
@@ -307,6 +331,11 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
       "t"  '(:ignore t :which-key "Toggles")
       "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
       "tl" '(display-line-numbers-mode :which-key "Toggle line numbers")
+      "tv" '(vterm-toggle :wk "Toggle vterm")
+      ;; Find
+      "f" '(:ignore t :which-key "Find")
+      "ff" '(counsel-find-file :which-key "Find file")
+      "fr" '(counsel-recentf :which-key "Recent files")
     ))
 
 #+end_src
@@ -954,6 +983,25 @@ Make sure that you have the [[https://github.com/akermu/emacs-libvterm/#requirem
     ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
     (setq vterm-max-scrollback 10000))
 
+(use-package vterm-toggle
+  :after vterm
+  :config
+  (setq vterm-toggle-fullscreen-p nil)
+  (setq vterm-toggle-scope 'project)
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-or-name _)
+                     (let ((buffer (get-buffer buffer-or-name)))
+                       (with-current-buffer buffer
+                         (or (equal major-mode 'vterm-mode)
+                             (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
+                  (display-buffer-reuse-window display-buffer-at-bottom)
+                  ;;(display-buffer-reuse-window display-buffer-in-direction)
+                  ;;display-buffer-in-direction/direction/dedicated is added in emacs27
+                  ;;(direction . bottom)
+                  ;;(dedicated . t) ;dedicated is supported in emacs27
+                  (reusable-frames . visible)
+                  (window-height . 0.3))))
+
 #+end_src
 
 ** Eshell
@@ -992,7 +1040,11 @@ For more thoughts on Eshell, check out these articles by Pierre Neidhardt:
       (setq eshell-history-size         10000
 	    eshell-buffer-maximum-lines 10000
 	    eshell-hist-ignoredups t
-	    eshell-scroll-to-bottom-on-input t))
+	    eshell-scroll-to-bottom-on-input t
+        eshell-destroy-buffer-when-process-dies t
+        eshell-rc-script (concat user-emacs-directory "eshell/profile")
+        eshell-aliases-file (concat user-emacs-directory "eshell/aliases")
+        ))
 
     (use-package eshell-git-prompt
       :after eshell)
@@ -1002,8 +1054,8 @@ For more thoughts on Eshell, check out these articles by Pierre Neidhardt:
       :config
 
       (with-eval-after-load 'esh-opt
-	(setq eshell-destroy-buffer-when-process-dies t)
-	(setq eshell-visual-commands '("htop" "zsh" "vim")))
+	    (setq eshell-destroy-buffer-when-process-dies t)
+	    (setq eshell-visual-commands '("htop" "zsh" "vim")))
 
       (eshell-git-prompt-use-theme 'powerline))
 
