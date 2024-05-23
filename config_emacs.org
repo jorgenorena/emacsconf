@@ -49,9 +49,9 @@
 - C/C++
 - Setup Acutex
 - Improve orgmode
-- orgmode links don't work!
 - Fonts are ugly on a graphical interface.
-- Which keys overlaps with the minibuffer
+- Loads LSP at startup for no apparent reason.
+- Powerbar is ugly.
 
 * Startup performance
 
@@ -114,7 +114,7 @@ We also add a path for custom script files in this config.
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; Add custom scripts to path
-(add-to-list 'load-path "~/.config/emacs_custom/scripts/")
+(add-to-list 'load-path "~/.config/custom_emacs/scripts/")
 
 #+end_src
 
@@ -239,7 +239,6 @@ A nice alternative is to use the [[https://emacsfodder.github.io/emacs-theme-edi
 
 #+begin_src emacs-lisp
 
-
   ;; Better modeline
     ;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
     (use-package powerline
@@ -251,12 +250,12 @@ A nice alternative is to use the [[https://emacsfodder.github.io/emacs-theme-edi
     ;; display correctly:
     ;;
     ;; M-x all-the-icons-install-fonts
-    ;;(use-package all-the-icons)
+    ;; (use-package all-the-icons)
 
     ;; (use-package doom-modeline
     ;;   :init (doom-modeline-mode 1)
     ;;   :custom ((doom-modeline-height 15)))
-  
+
 #+end_src
 
 ** Parentheses color
@@ -290,11 +289,11 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
 
   (use-package general
     :config
-    (general-create-definer rune/leader-keys
+    (general-create-definer my/leader-keys
       :keymaps '(normal insert visual emacs)
       :prefix "SPC"
       :global-prefix "C-SPC")
-    (rune/leader-keys
+    (my/leader-keys
       "SPC" '(counsel-M-x :which-key "M-x")
       "." '(counsel-find-file :which-key "Find file")
       "TAB TAB" '(comment-line :which-key "Comment line")
@@ -422,7 +421,7 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
     ("k" text-scale-decrease "out")
     ("f" nil "finished" :exit t))
 
-  (rune/leader-keys
+  (my/leader-keys
     "ts" '(hydra-text-scale/body :which-key "scale text"))
 
 #+end_src
@@ -432,24 +431,12 @@ Allows you to group a repetitive task, or related tasks under one head. In this 
 #+begin_src emacs-lisp
 
   ;; --- Which key ---
-
-  (use-package which-key
-    :defer 0
-    :diminish which-key-mode
-    :config
-    (which-key-mode)
-    (setq which-key-side-window-location 'bottom
-          which-key-sort-order #'which-key-key-order-alpha
-          which-key-sort-uppercase-first nil
-          which-key-add-column-padding 1
-          which-key-max-display-columns nil
-          which-key-min-display-lines 6
-          which-key-side-window-slot -10
-          which-key-side-window-max-height 0.25
-          which-key-idle-delay 0.2
-          which-key-max-description-length 25
-          which-key-allow-imprecise-window-fit t
-          ))
+(use-package which-key
+  :defer 0
+  :diminish which-key-mode
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 1))
 
 #+end_src
 
@@ -664,7 +651,13 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
   (use-package visual-fill-column
     :hook (org-mode . gorg-mode-visual-fill))
 
+  ;; Function to set up RET key binding in normal mode
+  (defun my/org-mode-evil-setup ()
+    "Custom configurations for org-mode with evil-mode."
+    (evil-define-key 'normal org-mode-map (kbd "RET") 'org-open-at-point))
 
+  ;; Add the function to the org-mode hook
+  (add-hook 'org-mode-hook 'my/org-mode-evil-setup)
 #+end_src
 ** Table of contents
 
