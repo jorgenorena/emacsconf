@@ -29,7 +29,8 @@
 (dolist (mode '(term-mode-hook
 		shell-mode-hook
 		treemacs-mode-hook
-		eshell-mode-hook))
+		eshell-mode-hook
+              eww-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;;  Font
@@ -90,7 +91,7 @@
 ;; --- THEME ---
 ;; preview it with M-x counsel-load-theme
 
-;;(use-package doom-themes)
+(use-package doom-themes)
 ;;(load-theme 'doom-gruvbox t)
 
 (use-package modus-themes
@@ -206,6 +207,12 @@
     "f" '(:ignore t :which-key "Find")
     "ff" '(counsel-find-file :which-key "Find file")
     "fr" '(counsel-recentf :which-key "Recent files")
+    ;; Dired
+    "d" '(:ignore t :wk "Dired")
+    "d d" '(dired :wk "Open dired")
+    "d j" '(dired-jump :wk "Dired jump to current")
+    "d n" '(neotree-dir :wk "Open directory in neotree")
+    "d p" '(peep-dired :wk "Peep-dired")
   ))
 
 ;; --- EVIL MODE ---
@@ -364,7 +371,10 @@
   :hook (org-mode . org-font-setup)
   :config
   (setq org-ellipsis " ▾")
+
+  ;; Avoid strange indentation behavior orgmode
   (electric-indent-mode -1) ;; if this doesn't work, try doing it after the hook below
+  (setq org-edit-src-content-indentation 0) ;; 
 
   ;; What does this do?
   (setq org-agenda-start-with-log-mode t)
@@ -483,7 +493,8 @@
   (org-babel-do-load-languages
       'org-babel-load-languages
 	'((emacs-lisp . t)
-	  (python . t)))
+	  (python . t)
+      (jupyter . t)))
 )
 
 (defun org-babel-tangle-config ()
@@ -533,8 +544,13 @@
     :prefix lsp-keymap-prefix
     "d" '(dap-hydra t :wk "debugger")))
 
+(use-package flycheck
+  :defer t
+  :after lsp-mode
+  :diminish
+  :init (global-flycheck-mode))
+
 (use-package python-mode
-  :ensure t
   :hook (python-mode . lsp-deferred)
   :custom
   ;; NOTE: Set these if Python 3 is called "python3" on your system!
@@ -546,17 +562,33 @@
   (setq lsp-pylsp-plugins-jedi-completion-enabled t)  ; Enable Jedi completion setup
   (setq lsp-pylsp-plugins-pylint-enabled t)           ; Enable Pylint for linting
   (setq lsp-pylsp-plugins-flake8-enabled t)           ; Optionally, enable Flake8 for linting
-
   (require 'dap-python)
   (dap-python-setup))
 
 (use-package conda
   :after python-mode
   :config
+  (setq conda-anaconda-home (expand-file-name "~/Programs/miniforge3/"))
+  (setq conda-env-home-directory (expand-file-name "~/Programs/miniforge3/"))
   (setq conda-env-subdirectory "envs")
 
   (unless (getenv "CONDA_DEFAULT_ENV")
     (conda-env-activate "base")))
+
+(use-package company-anaconda
+  :after '(company conda)
+  :config
+    '(add-to-list 'company-backends 'company-anaconda)
+)
+
+(add-hook 'python-mode-hook 'anaconda-mode)
+
+(use-package jupyter)
+
+(defun my/jupyter-refresh-kernelspecs ()
+  "Refresh Jupyter kernelspecs"
+  (interactive)
+  (jupyter-available-kernelspecs t))
 
 (use-package company
   :after lsp-mode
@@ -687,12 +719,12 @@
   (setq dired-open-extensions '(("png" . "feh")
 				("mkv" . "mpv"))))
 
-;; Hide dotfiles
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
+;; ;; Hide dotfiles
+;; (use-package dired-hide-dotfiles
+;;   :hook (dired-mode . dired-hide-dotfiles-mode)
+;;   :config
+;;   (evil-collection-define-key 'normal 'dired-mode-map
+;;     "H" 'dired-hide-dotfiles-mode))
 
 ;; Make gc pauses faster by decreasing the threshold.
 (setq gc-cons-threshold (* 2 1000 1000))

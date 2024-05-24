@@ -99,7 +99,8 @@ We also add a path for custom script files in this config.
 (dolist (mode '(term-mode-hook
 		shell-mode-hook
 		treemacs-mode-hook
-		eshell-mode-hook))
+		eshell-mode-hook
+              eww-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;;  Font
@@ -218,7 +219,7 @@ A nice alternative is to use the [[https://emacsfodder.github.io/emacs-theme-edi
       ;; --- THEME ---
       ;; preview it with M-x counsel-load-theme
 
-      ;;(use-package doom-themes)
+      (use-package doom-themes)
       ;;(load-theme 'doom-gruvbox t)
 
       (use-package modus-themes
@@ -275,88 +276,94 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
 
 #+begin_src emacs-lisp
 
-  ;; A function used below
-  (defun reload-init-file ()
-    (interactive)
-    (load-file user-init-file))
+;; A function used below
+(defun reload-init-file ()
+  (interactive)
+  (load-file user-init-file))
 
-  ;; A code to move buffers around
-  (require 'buffer-move)
+;; A code to move buffers around
+(require 'buffer-move)
 
-  ;; --- KEY BINDINGS INC. EVIL LEADER ---
-  ;; This may hurt performance in mobile. Try using evil-leader instead.
+;; --- KEY BINDINGS INC. EVIL LEADER ---
+;; This may hurt performance in mobile. Try using evil-leader instead.
 
-  (use-package general
-    :config
-    (general-create-definer my/leader-keys
-      :keymaps '(normal insert visual emacs)
-      :prefix "SPC"
-      :global-prefix "C-SPC")
-    (my/leader-keys
-      "SPC" '(counsel-M-x :which-key "M-x")
-      "." '(counsel-find-file :which-key "Find file")
-      "TAB TAB" '(comment-line :which-key "Comment line")
-      ;; Buffers
-      "b" '(:ignore t :which-key "Buffers")
-      "bb" '(counsel-ibuffer :which-key "Choose buffer")
-      "bk" '(kill-current-buffer :which-key "Kill current buffer")
-      "bn" '(next-buffer :which-key "Next buffer")
-      "bp" '(previous-buffer :which-key "Previous buffer")
-      "br" '(revert-buffer :which-key "Reload buffer")
-      "wH" '(buf-move-left :which-key "Move buffer left")
-      "wJ" '(buf-move-down :which-key "Move buffer down")
-      "wK" '(buf-move-up :which-key "Move buffer up")
-      "wL" '(buf-move-right :which-key "Move buffer right")
-      ;; Eshell/evaluate
-      "e" '(:ignore t :wk "Eshell/Evaluate")    
-      "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
-      "e d" '(eval-defun :wk "Evaluate defun containing or after point")
-      "e e" '(eval-expression :wk "Evaluate and elisp expression")
-      "e h" '(counsel-esh-history :which-key "Eshell history")
-      "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
-      "e r" '(eval-region :wk "Evaluate elisp in region")
-      "e s" '(eshell :which-key "Eshell")
-      ;; Org mode
-      "m" '(:ignore t :wk "Org")
-      "m a" '(org-agenda :wk "Org agenda")
-      "m e" '(org-export-dispatch :wk "Org export dispatch")
-      "m i" '(org-toggle-item :wk "Org toggle item")
-      "m t" '(org-todo :wk "Org todo")
-      "m B" '(org-babel-tangle :wk "Org babel tangle")
-      "m T" '(org-todo-list :wk "Org todo list")
-      ;; Orgmode tables
-      "m b" '(:ignore t :wk "Tables")
-      "m b -" '(org-table-insert-hline :wk "Insert hline in table")
-      ;; Orgmode dates
-      "m d" '(:ignore t :wk "Date/deadline")
-      "m d t" '(org-time-stamp :wk "Org time stamp")
-      ;; Projects
-      "p" '(projectile-command-map :wk "Projectile")
-      ;; Windows
-      "w" '(:ignore t :which-key "Windows")
-      "wc" '(evil-window-delete :which-key "Close window")
-      "wn" '(evil-window-new :which-key "New window")
-      "ws" '(evil-window-split :which-key "Horizontal split")
-      "wv" '(evil-window-vsplit :which-key "Vertical split")
-      "wh" '(evil-window-left :which-key "Move to window left")
-      "wj" '(evil-window-down :which-key "Move to window down")
-      "wk" '(evil-window-up :which-key "Move to window up")
-      "wl" '(evil-window-right :which-key "Move to window right")
-      ;; Help!
-      "h" '(:ignore t :which-key "Help")
-      "hf" '(describe-function :which-key "Describe function")
-      "hv" '(describe-variable :which-key "Describe variable")
-      "hrr" '(reload-init-file :which-key "Reload emacs config")
-      ;; Toggles
-      "t"  '(:ignore t :which-key "Toggles")
-      "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
-      "tl" '(display-line-numbers-mode :which-key "Toggle line numbers")
-      "tv" '(vterm-toggle :wk "Toggle vterm")
-      ;; Find
-      "f" '(:ignore t :which-key "Find")
-      "ff" '(counsel-find-file :which-key "Find file")
-      "fr" '(counsel-recentf :which-key "Recent files")
-    ))
+(use-package general
+  :config
+  (general-create-definer my/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+  (my/leader-keys
+    "SPC" '(counsel-M-x :which-key "M-x")
+    "." '(counsel-find-file :which-key "Find file")
+    "TAB TAB" '(comment-line :which-key "Comment line")
+    ;; Buffers
+    "b" '(:ignore t :which-key "Buffers")
+    "bb" '(counsel-ibuffer :which-key "Choose buffer")
+    "bk" '(kill-current-buffer :which-key "Kill current buffer")
+    "bn" '(next-buffer :which-key "Next buffer")
+    "bp" '(previous-buffer :which-key "Previous buffer")
+    "br" '(revert-buffer :which-key "Reload buffer")
+    "wH" '(buf-move-left :which-key "Move buffer left")
+    "wJ" '(buf-move-down :which-key "Move buffer down")
+    "wK" '(buf-move-up :which-key "Move buffer up")
+    "wL" '(buf-move-right :which-key "Move buffer right")
+    ;; Eshell/evaluate
+    "e" '(:ignore t :wk "Eshell/Evaluate")    
+    "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
+    "e d" '(eval-defun :wk "Evaluate defun containing or after point")
+    "e e" '(eval-expression :wk "Evaluate and elisp expression")
+    "e h" '(counsel-esh-history :which-key "Eshell history")
+    "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+    "e r" '(eval-region :wk "Evaluate elisp in region")
+    "e s" '(eshell :which-key "Eshell")
+    ;; Org mode
+    "m" '(:ignore t :wk "Org")
+    "m a" '(org-agenda :wk "Org agenda")
+    "m e" '(org-export-dispatch :wk "Org export dispatch")
+    "m i" '(org-toggle-item :wk "Org toggle item")
+    "m t" '(org-todo :wk "Org todo")
+    "m B" '(org-babel-tangle :wk "Org babel tangle")
+    "m T" '(org-todo-list :wk "Org todo list")
+    ;; Orgmode tables
+    "m b" '(:ignore t :wk "Tables")
+    "m b -" '(org-table-insert-hline :wk "Insert hline in table")
+    ;; Orgmode dates
+    "m d" '(:ignore t :wk "Date/deadline")
+    "m d t" '(org-time-stamp :wk "Org time stamp")
+    ;; Projects
+    "p" '(projectile-command-map :wk "Projectile")
+    ;; Windows
+    "w" '(:ignore t :which-key "Windows")
+    "wc" '(evil-window-delete :which-key "Close window")
+    "wn" '(evil-window-new :which-key "New window")
+    "ws" '(evil-window-split :which-key "Horizontal split")
+    "wv" '(evil-window-vsplit :which-key "Vertical split")
+    "wh" '(evil-window-left :which-key "Move to window left")
+    "wj" '(evil-window-down :which-key "Move to window down")
+    "wk" '(evil-window-up :which-key "Move to window up")
+    "wl" '(evil-window-right :which-key "Move to window right")
+    ;; Help!
+    "h" '(:ignore t :which-key "Help")
+    "hf" '(describe-function :which-key "Describe function")
+    "hv" '(describe-variable :which-key "Describe variable")
+    "hrr" '(reload-init-file :which-key "Reload emacs config")
+    ;; Toggles
+    "t"  '(:ignore t :which-key "Toggles")
+    "tt" '(modus-themes-toggle :which-key "Toggle light/dark theme")
+    "tl" '(display-line-numbers-mode :which-key "Toggle line numbers")
+    "tv" '(vterm-toggle :wk "Toggle vterm")
+    ;; Find
+    "f" '(:ignore t :which-key "Find")
+    "ff" '(counsel-find-file :which-key "Find file")
+    "fr" '(counsel-recentf :which-key "Recent files")
+    ;; Dired
+    "d" '(:ignore t :wk "Dired")
+    "d d" '(dired :wk "Open dired")
+    "d j" '(dired-jump :wk "Dired jump to current")
+    "d n" '(neotree-dir :wk "Open directory in neotree")
+    "d p" '(peep-dired :wk "Peep-dired")
+  ))
 
 #+end_src
 
@@ -595,7 +602,10 @@ Now the org-mode configuration. This has a bunch of configs for the agenda, tags
     :hook (org-mode . org-font-setup)
     :config
     (setq org-ellipsis " ▾")
+
+    ;; Avoid strange indentation behavior orgmode
     (electric-indent-mode -1) ;; if this doesn't work, try doing it after the hook below
+    (setq org-edit-src-content-indentation 0) ;; 
 
     ;; What does this do?
     (setq org-agenda-start-with-log-mode t)
@@ -745,7 +755,8 @@ The last we added below
   (org-babel-do-load-languages
       'org-babel-load-languages
 	'((emacs-lisp . t)
-	  (python . t)))
+	  (python . t)
+      (jupyter . t)))
 )
 #+end_src
 
@@ -865,6 +876,20 @@ Try these commands with =M-x=:
 
 #+end_src
 
+*** Syntax checking with flycheck 
+
+For info on flycheck see [[https://www.flycheck.org/en/latest/languages.html][this]].
+
+#+begin_src emacs-lisp
+
+(use-package flycheck
+  :defer t
+  :after lsp-mode
+  :diminish
+  :init (global-flycheck-mode))
+
+#+end_src
+
 *** Python
 
 See the following:
@@ -881,7 +906,7 @@ Make sure you have the =pyls= language server installed before trying =lsp-mode=
 
 #+begin_src sh :tangle no
 
-pip install --user "python-language-server[all]"
+pip install --user "python-lsp-server"
 pip install --user "debugpy"
 
 #+end_src
@@ -891,7 +916,6 @@ There are a number of other language servers for Python so if you find that =pyl
 #+begin_src emacs-lisp
 
   (use-package python-mode
-    :ensure t
     :hook (python-mode . lsp-deferred)
     :custom
     ;; NOTE: Set these if Python 3 is called "python3" on your system!
@@ -903,7 +927,6 @@ There are a number of other language servers for Python so if you find that =pyl
     (setq lsp-pylsp-plugins-jedi-completion-enabled t)  ; Enable Jedi completion setup
     (setq lsp-pylsp-plugins-pylint-enabled t)           ; Enable Pylint for linting
     (setq lsp-pylsp-plugins-flake8-enabled t)           ; Optionally, enable Flake8 for linting
- 
     (require 'dap-python)
     (dap-python-setup))
 
@@ -928,12 +951,48 @@ We instead use Anaconda, so use the following
 (use-package conda
   :after python-mode
   :config
+  (setq conda-anaconda-home (expand-file-name "~/Programs/miniforge3/"))
+  (setq conda-env-home-directory (expand-file-name "~/Programs/miniforge3/"))
   (setq conda-env-subdirectory "envs")
 
   (unless (getenv "CONDA_DEFAULT_ENV")
     (conda-env-activate "base")))
 
+(use-package company-anaconda
+  :after '(company conda)
+  :config
+    '(add-to-list 'company-backends 'company-anaconda)
+)
+
+(add-hook 'python-mode-hook 'anaconda-mode)
+
 #+end_src
+
+When using anaconda, autocompletion won't work on imports. Hopefully the above solves this.
+
+**** Jupyter 
+
+#+begin_src emacs-lisp
+
+(use-package jupyter)
+
+#+end_src
+
+
+However, as you will notice rather soon, emacs-jupyter will always use the Python kernel found on startup. So if you switch to a new environment, the code will still be running in the old one, which is not too convenient.
+
+Fortunately, to fix that we have only to force the refresh of Jupyter kernelspecs:
+
+#+begin_src emacs-lisp
+
+(defun my/jupyter-refresh-kernelspecs ()
+  "Refresh Jupyter kernelspecs"
+  (interactive)
+  (jupyter-available-kernelspecs t))
+
+#+end_src
+
+Calling ~M-x my/jupyter-refresh-kernelspecs~ after an environment switch will give you a new kernel. Just keep in mind that a kernelspec seems to be attached to a session, so you’d also have to change the session name to get a new kernel.
 
 ** Company Mode
 
@@ -1165,40 +1224,40 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
 
 #+begin_src emacs-lisp
 
-  (use-package dired
-    :ensure nil
-    :commands (dired dired-jump)
-    :bind (("C-x C-j" . dired-jump))
-    :custom ((dired-listing-switches "-algho --group-directories-first"))
-    :config
-    (evil-collection-define-key 'normal 'dired-mode-map
-      "h" 'dired-single-up-directory
-      "l" 'dired-single-buffer))
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-algho --group-directories-first"))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer))
 
-  ;; Make dired use a single buffer
-  (use-package dired-single 
-    :commands (dired dired-jump))
+;; Make dired use a single buffer
+(use-package dired-single 
+  :commands (dired dired-jump))
 
-  ;; Make dired show icons
-  (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+;; Make dired show icons
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
 
-  ;; Specify which program should open each file
-  ;; look into open-xdg to open using default linux apps
-  (use-package dired-open
-    :commands (dired dired-jump)
-    :config
-    ;; Doesn't work as expected!
-    ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
-    (setq dired-open-extensions '(("png" . "feh")
-				  ("mkv" . "mpv"))))
+;; Specify which program should open each file
+;; look into open-xdg to open using default linux apps
+(use-package dired-open
+  :commands (dired dired-jump)
+  :config
+  ;; Doesn't work as expected!
+  ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
+  (setq dired-open-extensions '(("png" . "feh")
+				("mkv" . "mpv"))))
 
-  ;; Hide dotfiles
-  (use-package dired-hide-dotfiles
-    :hook (dired-mode . dired-hide-dotfiles-mode)
-    :config
-    (evil-collection-define-key 'normal 'dired-mode-map
-      "H" 'dired-hide-dotfiles-mode))
+;; ;; Hide dotfiles
+;; (use-package dired-hide-dotfiles
+;;   :hook (dired-mode . dired-hide-dotfiles-mode)
+;;   :config
+;;   (evil-collection-define-key 'normal 'dired-mode-map
+;;     "H" 'dired-hide-dotfiles-mode))
 
 #+end_src
 
