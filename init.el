@@ -157,9 +157,31 @@
     "wJ" '(buf-move-down :which-key "Move buffer down")
     "wK" '(buf-move-up :which-key "Move buffer up")
     "wL" '(buf-move-right :which-key "Move buffer right")
-    ;; Evaluate elisp
-    "e" '(:ignore t :which-key "Evaluate elisp")
-    "eb" '(evaluate-buffer :which-key "Evaluate buffer")
+    ;; Eshell/evaluate
+    "e" '(:ignore t :wk "Eshell/Evaluate")    
+    "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
+    "e d" '(eval-defun :wk "Evaluate defun containing or after point")
+    "e e" '(eval-expression :wk "Evaluate and elisp expression")
+    "e h" '(counsel-esh-history :which-key "Eshell history")
+    "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+    "e r" '(eval-region :wk "Evaluate elisp in region")
+    "e s" '(eshell :which-key "Eshell")
+    ;; Org mode
+    "m" '(:ignore t :wk "Org")
+    "m a" '(org-agenda :wk "Org agenda")
+    "m e" '(org-export-dispatch :wk "Org export dispatch")
+    "m i" '(org-toggle-item :wk "Org toggle item")
+    "m t" '(org-todo :wk "Org todo")
+    "m B" '(org-babel-tangle :wk "Org babel tangle")
+    "m T" '(org-todo-list :wk "Org todo list")
+    ;; Orgmode tables
+    "m b" '(:ignore t :wk "Tables")
+    "m b -" '(org-table-insert-hline :wk "Insert hline in table")
+    ;; Orgmode dates
+    "m d" '(:ignore t :wk "Date/deadline")
+    "m d t" '(org-time-stamp :wk "Org time stamp")
+    ;; Projects
+    "p" '(projectile-command-map :wk "Projectile")
     ;; Windows
     "w" '(:ignore t :which-key "Windows")
     "wc" '(evil-window-delete :which-key "Close window")
@@ -235,13 +257,32 @@
   (evil-terminal-cursor-changer-activate) ; or (etcc-on)
   )
 
-;; --- Which key ---
+;;   ;; --- Which key ---
+  ;; (use-package which-key
+  ;;   :defer 0
+  ;;   :diminish which-key-mode
+  ;;   :config
+  ;;   (which-key-mode)
+  ;;   (setq which-key-idle-delay 1))
+
 (use-package which-key
-  :defer 0
+  :init
+    (which-key-mode 1)
   :diminish which-key-mode
   :config
-  (which-key-mode)
-  (setq which-key-idle-delay 1))
+  (setq which-key-side-window-location 'bottom
+	  which-key-sort-order #'which-key-key-order
+	  which-key-allow-imprecise-window-fit nil
+	  which-key-sort-uppercase-first nil
+	  which-key-add-column-padding 1
+	  which-key-max-display-columns nil
+	  which-key-min-display-lines 6
+	  which-key-side-window-slot -10
+	  which-key-side-window-max-height 0.25
+	  which-key-idle-delay 0.8
+	  which-key-max-description-length 25
+	  which-key-allow-imprecise-window-fit nil
+	  which-key-separator " → " ))
 
 ;; --- Ivy command completion ---
 ;; Maybe try other packages and test for performance
