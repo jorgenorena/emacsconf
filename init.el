@@ -55,7 +55,7 @@
 ; remember cursor position
 (save-place-mode 1)
 
-; Move customization vars to a separate file
+; Move customization vars specified in graphical interface to a separate file
 (setq custom-file (locate-user-emacs-file "custom-vars.el"))
 (load custom-file 'noerror 'nomessage)
 
@@ -106,20 +106,20 @@
 
 ;; Better modeline
   ;; doom modeline was too heavy for mobile devices, and had font problems, planning on using this instead
-  (use-package powerline
-    :config (powerline-default-theme)
-    )
+  ;; (use-package powerline
+  ;;   :config (powerline-evil-theme)
+  ;;   )
 
   ;; NOTE: The first time you load your configuration on a new machine, you'll
   ;; need to run the following command interactively so that mode line icons
   ;; display correctly:
   ;;
   ;; M-x all-the-icons-install-fonts
-  ;; (use-package all-the-icons)
+  (use-package all-the-icons)
 
-  ;; (use-package doom-modeline
-  ;;   :init (doom-modeline-mode 1)
-  ;;   :custom ((doom-modeline-height 15)))
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1)
+    :custom ((doom-modeline-height 15)))
 
 ;; rainbow mode for nested parentheses.
 (use-package rainbow-delimiters
@@ -315,6 +315,7 @@
 
 ;; --- ORG MODE! ---
 
+(setq evil-want-C-i-jump nil)  
 
 (use-package org
   :pin org
@@ -331,13 +332,13 @@
 
   ;; Which files to use for the agenda.
   (setq org-agenda-files
-	'("~/org/Tasks.org"
-	  "~/org/Schedule.org"
-	  "~/org/Dates.org"))
+        '("~/org/Tasks.org"
+          "~/org/Schedule.org"
+          "~/org/Dates.org"))
 
   ;; Custom To do keywords / states
   (setq org-todo-keywords
-	'((sequence "TODO(t)" "NEXT(n)" "ACTIVE(a)" "|" "DONE(d!)")))
+        '((sequence "TODO(t)" "NEXT(n)" "ACTIVE(a)" "|" "DONE(d!)")))
 
   ;; Files to use for refiling
   (setq org-refile-targets
@@ -366,12 +367,12 @@
    '(("d" "Dashboard"
      ((agenda "" ((org-deadline-warning-days 7)))
       (todo "NEXT"
-	((org-agenda-overriding-header "Next Tasks")))
+        ((org-agenda-overriding-header "Next Tasks")))
       (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
 
     ("n" "Next Tasks"
      ((todo "NEXT"
-	((org-agenda-overriding-header "Next Tasks")))))
+        ((org-agenda-overriding-header "Next Tasks")))))
 
     ("W" "Work Tasks" tags-todo "+work-email")
 
@@ -384,20 +385,20 @@
   (setq org-capture-templates
     `(("t" "Tasks / Projects")
       ("tt" "Task" entry (file+olp "~/org/Tasks.org" "Inbox")
-	   "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
+           "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
 
       ("j" "Journal Entries")
       ("jj" "Journal" entry
-	   (file+olp+datetree "~/org/Journal.org")
-	   "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-	   ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
-	   :clock-in :clock-resume
-	   :empty-lines 1)
+           (file+olp+datetree "~/org/Journal.org")
+           "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+           ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
+           :clock-in :clock-resume
+           :empty-lines 1)
       ("jm" "Meeting" entry
-	   (file+olp+datetree "~/org/Journal.org")
-	   "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-	   :clock-in :clock-resume
-	   :empty-lines 1)))
+           (file+olp+datetree "~/org/Journal.org")
+           "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+           :clock-in :clock-resume
+           :empty-lines 1)))
 
   ;; Capture keybindings
   (define-key global-map (kbd "C-c j")
@@ -413,7 +414,7 @@
 
 (defun gorg-mode-visual-fill ()
   (setq visual-fill-column-width 100
-	visual-fill-column-center-text t)
+        visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
@@ -422,7 +423,8 @@
 ;; Function to set up RET key binding in normal mode
 (defun my/org-mode-evil-setup ()
   "Custom configurations for org-mode with evil-mode."
-  (evil-define-key 'normal org-mode-map (kbd "RET") 'org-open-at-point))
+  (evil-define-key 'normal org-mode-map (kbd "RET") 'org-open-at-point)
+  (evil-define-key 'normal org-mode-map (kbd "C-i") 'org-cycle))
 
 ;; Add the function to the org-mode hook
 (add-hook 'org-mode-hook 'my/org-mode-evil-setup)
@@ -620,7 +622,7 @@
   :ensure nil
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first")) ;; what does this do?
+  :custom ((dired-listing-switches "-algho --group-directories-first"))
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
     "h" 'dired-single-up-directory
