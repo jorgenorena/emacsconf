@@ -665,10 +665,7 @@
 
 (use-package jupyter)
 
-(defun my/jupyter-refresh-kernelspecs ()
-  "Refresh Jupyter kernelspecs"
-  (interactive)
-  (jupyter-available-kernelspecs t))
+(require 'my-jupyter-utils)
 
 (use-package company
   :after lsp-mode

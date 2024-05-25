@@ -46,13 +46,15 @@
 
 * Issues
 
-- Tab does not fold regions in terminal (tried to fix and couldn't)
-- Need to check Python installation. Notebook and orgmode integration.
+- Notebook and orgmode integration.
 - Setup Acutex
 - C/C++
 - Julia installation
 - Improve orgmode
 - Fonts are ugly on a graphical interface. Maybe use Monoid, looks quite good with this theme.
+- Consider adding more orgmode key bindings.
+- Consider making orgmode key bindings active only in orgmode.
+- Load jupyter only when appropriate, currently taking too much startup time.
 
 * Startup performance
 
@@ -1068,21 +1070,13 @@ When using anaconda, autocompletion won't work on imports. Hopefully the above s
 
 #+end_src
 
-
-However, as you will notice rather soon, emacs-jupyter will always use the Python kernel found on startup. So if you switch to a new environment, the code will still be running in the old one, which is not too convenient.
-
-Fortunately, to fix that we have only to force the refresh of Jupyter kernelspecs:
+We import several scripts that allow us to easily interact with the kernel. Look at the description [[file:scripts/jupyter_utils.org][here]].
 
 #+begin_src emacs-lisp
 
-(defun my/jupyter-refresh-kernelspecs ()
-  "Refresh Jupyter kernelspecs"
-  (interactive)
-  (jupyter-available-kernelspecs t))
+(require 'my-jupyter-utils)
 
 #+end_src
-
-Calling ~M-x my/jupyter-refresh-kernelspecs~ after an environment switch will give you a new kernel. Just keep in mind that a kernelspec seems to be attached to a session, so you’d also have to change the session name to get a new kernel.
 
 For some reason, ~M-x jupyter-run-repl~ has permision problems and fails to run on mobile.
 
@@ -1104,7 +1098,7 @@ gcc skip_getifaddrs.c -o skip_getifaddrs.so -shared
 To get a kernel to run do the following
 
 #+begin_src bash
-LD_PRELOAD=~/.config/custom_emacs/skip_getifaddrs.so jupyter notebook --allow-root
+LD_PRELOAD=~/.config/custom_emacs/skip_getifaddrs.so jupyter notebook
 #+end_src
 
 ** Company Mode
