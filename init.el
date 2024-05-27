@@ -112,7 +112,7 @@
 :ensure t
 :config
 ;; Add all your customizations prior to loading the themes
-(setq modus-themes-italic-constructs t
+(setq modus-themes-italic-constructs nil
       modus-themes-bold-constructs t
      modus-themes-to-toggle '(modus-vivendi-tinted modus-operandi-tinted))
 
@@ -144,6 +144,13 @@
 (use-package rainbow-mode
   :diminish
   :hook org-mode prog-mode)
+
+(use-package edwina
+  :ensure t
+  :config
+  (setq display-buffer-base-action '(display-buffer-below-selected))
+  ;; (edwina-setup-dwm-keys)
+  (edwina-mode 1))
 
 ;; A function used below
 (defun reload-init-file ()
@@ -307,9 +314,11 @@
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state) ;; make C-g also exit input mode
   
-  ;; j and k go down in lines you can see, not lines in the original file
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  ;; set this so j and k go down in lines you can see, not lines in the original file
+  ;(evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "<down>" 'evil-next-visual-line)
+  ;(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (evil-global-set-key 'motion "<up>" 'evil-previous-visual-line)
   
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
@@ -574,7 +583,9 @@
       'org-babel-load-languages
 	'((emacs-lisp . t)
 	  (python . t)
-      (jupyter . t)))
+      (jupyter . t) ;Currently not working
+      ;(ipython . t)
+    )) ;See the python section
 )
 
 (defun org-babel-tangle-config ()
@@ -630,6 +641,13 @@
   :diminish
   :init (global-flycheck-mode))
 
+(use-package yasnippet
+  :after lsp-mode 
+  :init (global-yas-mode))
+
+(use-package yasnippet-snippets
+  :after yasnippet)
+
 (use-package python-mode
   :hook (python-mode . lsp-deferred)
   :custom
@@ -666,6 +684,9 @@
 (use-package jupyter)
 
 (require 'my-jupyter-utils)
+
+;; LUA support
+(use-package lua-mode)
 
 (use-package company
   :after lsp-mode

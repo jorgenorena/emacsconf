@@ -17,6 +17,7 @@
   - [[#modeline][Modeline]]
   - [[#parentheses-color][Parentheses color]]
   - [[#rainbow-mode-to-show-colors][Rainbow mode to show colors]]
+  - [[#dynamic-window-management][Dynamic window management]]
 - [[#key-bindings][Key bindings]]
   - [[#general-the-evil-leader][General (the Evil Leader)]]
   - [[#evil-mode][Evil mode]]
@@ -33,6 +34,7 @@
   - [[#auto-tangle-when-saving-org-file-not-working][Auto tangle when saving org file (not working)]]
 - [[#development][Development]]
   - [[#ide-features-with-lsp-mode][IDE Features with lsp-mode]]
+  - [[#python][Python]]
   - [[#company-mode][Company Mode]]
   - [[#projectile][Projectile]]
   - [[#magit][Magit]]
@@ -46,15 +48,17 @@
 
 * Issues
 
-- Notebook and orgmode integration.
-- Setup Acutex
-- C/C++
-- Julia installation
-- Improve orgmode
+- Complains about a yas variable not existing when starting up.
+- Setup Acutex.
+- C/C++.
+- Julia installation.
+- Improve orgmode.
 - Fonts are ugly on a graphical interface. Maybe use Monoid, looks quite good with this theme.
 - Consider adding more orgmode key bindings.
 - Consider making orgmode key bindings active only in orgmode.
 - Load jupyter only when appropriate, currently taking too much startup time.
+- Connectivity to cluster.
+- Careful with hooks and after statements. We may be missing LSP features on orgmode.
 
 * Startup performance
 
@@ -244,7 +248,7 @@ A nice alternative is to use the [[https://emacsfodder.github.io/emacs-theme-edi
       :ensure t
       :config
       ;; Add all your customizations prior to loading the themes
-      (setq modus-themes-italic-constructs t
+      (setq modus-themes-italic-constructs nil
 	    modus-themes-bold-constructs t
            modus-themes-to-toggle '(modus-vivendi-tinted modus-operandi-tinted))
 
@@ -298,6 +302,44 @@ Display the actual color as a background for any hex color value (ex. #ffffff). 
   :hook org-mode prog-mode)
 
 #+end_src
+
+** Dynamic window management
+
+I'll play around with some dynamic window management. Some people complain that it messes up minibuffers and side trees, when it shouldn't.
+
+#+begin_src emacs-lisp
+
+  (use-package edwina
+    :ensure t
+    :config
+    (setq display-buffer-base-action '(display-buffer-below-selected))
+    ;; (edwina-setup-dwm-keys)
+    (edwina-mode 1))
+
+#+end_src
+
+*** Keybindings
+
+By default these keys are prefixed with =C-c C-w=. Customize =edwina-keymap-prefix= to change the prefix.
+
+|-------------------+--------------------------------------|
+| Binding           | Action                               |
+|-------------------+--------------------------------------|
+| =r=, =C-r=        | Arrange windows                      |
+| =n=, =C-n=, =SPC= | Move to next window                  |
+| =p=, =C-p=        | Move to previous window              |
+| =N=, =C-S-n=      | Swap places with the next window     |
+| =P=, =C-S-p=      | Swap places with the previous window |
+| =%=, ={=, =[=     | Decrease the size of the master area |
+| =^=, =}=, =]=     | Increase the size of the master area |
+| =d=, =C-d=        | Decrease number of windows in master |
+| =i=               | Increase number of windows in master |
+| =k=, =C-k=        | Delete window                        |
+| =RET=             | Cycle window to/from master area     |
+| =c=, =C-c=        | Clone current window                 |
+|-------------------+--------------------------------------|
+
+*TIP:* Set up =dwm=-inspired keys with =(edwina-setup-dwm-keys)=
 
 * Key bindings
 
@@ -477,9 +519,11 @@ This configuration uses [[https://evil.readthedocs.io/en/latest/index.html][evil
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state) ;; make C-g also exit input mode
   
-  ;; j and k go down in lines you can see, not lines in the original file
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  ;; set this so j and k go down in lines you can see, not lines in the original file
+  ;(evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "<down>" 'evil-next-visual-line)
+  ;(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (evil-global-set-key 'motion "<up>" 'evil-previous-visual-line)
   
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
@@ -848,7 +892,9 @@ The last we added below
       'org-babel-load-languages
 	'((emacs-lisp . t)
 	  (python . t)
-      (jupyter . t)))
+      (jupyter . t) ;Currently not working
+      ;(ipython . t)
+    )) ;See the python section
 )
 #+end_src
 
@@ -982,7 +1028,22 @@ For info on flycheck see [[https://www.flycheck.org/en/latest/languages.html][th
 
 #+end_src
 
-*** Python
+*** Code snippets with yasnip 
+
+Snippet autocompletion.
+
+#+begin_src emacs-lisp
+
+(use-package yasnippet
+  :after lsp-mode 
+  :init (global-yas-mode))
+
+(use-package yasnippet-snippets
+  :after yasnippet)
+
+#+end_src
+
+** Python
 
 See the following:
 
@@ -1064,7 +1125,7 @@ When using anaconda, autocompletion won't work on imports. Hopefully the above s
 
 **** Jupyter 
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp 
 
 (use-package jupyter)
 
@@ -1101,7 +1162,40 @@ To get a kernel to run do the following
 LD_PRELOAD=~/.config/custom_emacs/skip_getifaddrs.so jupyter notebook
 #+end_src
 
-When attempting =jupyter-run-repl=, I get a =permission denied= error. When attempting =jupyter-connect-repl=, I also get an error regarding the ZMQ module. However, when running org code cells, it seems to execute (but not on jupyter). See [[https://github.com/nnicandro/emacs-zmq][the ZMQ github page]].
+When attempting =jupyter-run-repl=, I get a =ipresolver.cpp permission denied= error. When attempting =jupyter-connect-repl=, I get an error regarding the ZMQ module. (At least on the tablet.) However, when running org code cells, it seems to execute (but on a local process, not on jupyter). See [[https://github.com/nnicandro/emacs-zmq][the ZMQ github page]].
+
+I attempted installing =autoconf=, =zeromq=, =automake=, and =libtool=. This could compile ZMQ by going to the =src= folder inside the =zmq= directory found in =.config/emacs/elpa=, running ~aclocal~, ~autoreconf -i~, and then ~make~ in the parent directory. Ialso set some variables as suggested in the ZMQ github page. [[https://stackoverflow.com/questions/18978252/error-libtool-library-used-but-libtool-is-undefined][This post]] really helped. Now ZMQ is installed, but trying to use it crashes emacs!
+
+I redownloaded ZMQ by cloning into the github repo. I ran =make= on its directory. Then opened emacs by using
+
+#+begin_src shell
+
+LD_PRELOAD=~/.config/custom_emacs/skip_getifaddrs.so emacs
+
+#+end_src
+
+Now at least I can use =M-x jupyter-run-repl=.
+
+We tried with the older [[https://github.com/gregsexton/ob-ipython][ob-ipython]].
+
+#+begin_src emacs-lisp :tangle no
+
+(use-package ob-ipython)
+
+#+end_src
+
+Tests with this older package give a strange JSON error. 
+
+*** LUA
+
+Emacs doesn't come with LUA highlighting by default. For now, we simply use the following
+
+#+begin_src emacs-lisp
+
+;; LUA support
+(use-package lua-mode)
+
+#+end_src
 
 ** Company Mode
 
