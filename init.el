@@ -688,6 +688,21 @@
 ;; LUA support
 (use-package lua-mode)
 
+;; LaTeX support
+(use-package tex
+  :ensure auctex
+  :config
+    ;; Enable "document parsing" (suggested by the manual)
+    (setq TeX-auto-save t) 
+    (setq TeX-parse-self t)
+    (setq lsp-tex-server 'texlab))
+
+(use-package cdlatex
+  :after tex)
+
+(use-package evil-tex
+  :after tex)
+
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)

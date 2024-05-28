@@ -35,6 +35,8 @@
 - [[#development][Development]]
   - [[#ide-features-with-lsp-mode][IDE Features with lsp-mode]]
   - [[#python][Python]]
+  - [[#lua][LUA]]
+  - [[#latex][LaTex]]
   - [[#company-mode][Company Mode]]
   - [[#projectile][Projectile]]
   - [[#magit][Magit]]
@@ -48,17 +50,16 @@
 
 * Issues
 
-- Complains about a yas variable not existing when starting up.
-- Setup Acutex.
 - C/C++.
 - Julia installation.
 - Improve orgmode.
 - Fonts are ugly on a graphical interface. Maybe use Monoid, looks quite good with this theme.
 - Consider adding more orgmode key bindings.
 - Consider making orgmode key bindings active only in orgmode.
-- Load jupyter only when appropriate, currently taking too much startup time.
+- Load jupyter and AUCTeX only when appropriate, currently taking too much startup time.
 - Connectivity to cluster.
 - Careful with hooks and after statements. We may be missing LSP features on orgmode.
+- Check Python, Julia, LaTeX, C/C++ installations.
 
 * Startup performance
 
@@ -1123,7 +1124,7 @@ We instead use Anaconda, so use the following
 
 When using anaconda, autocompletion won't work on imports. Hopefully the above solves this.
 
-**** Jupyter 
+*** Jupyter 
 
 #+begin_src emacs-lisp 
 
@@ -1162,9 +1163,9 @@ To get a kernel to run do the following
 LD_PRELOAD=~/.config/custom_emacs/skip_getifaddrs.so jupyter notebook
 #+end_src
 
-When attempting =jupyter-run-repl=, I get a =ipresolver.cpp permission denied= error. When attempting =jupyter-connect-repl=, I get an error regarding the ZMQ module. (At least on the tablet.) However, when running org code cells, it seems to execute (but on a local process, not on jupyter). See [[https://github.com/nnicandro/emacs-zmq][the ZMQ github page]].
+When attempting =jupyter-run-repl=, I get a =ipresolver.cpp permission denied= error. When attempting =jupyter-connect-repl=, I get an error regarding the ZMQ module on the phone. However, when running org code cells, it seems to execute (but on a local process, not on jupyter). See [[https://github.com/nnicandro/emacs-zmq][the ZMQ github page]].
 
-I attempted installing =autoconf=, =zeromq=, =automake=, and =libtool=. This could compile ZMQ by going to the =src= folder inside the =zmq= directory found in =.config/emacs/elpa=, running ~aclocal~, ~autoreconf -i~, and then ~make~ in the parent directory. Ialso set some variables as suggested in the ZMQ github page. [[https://stackoverflow.com/questions/18978252/error-libtool-library-used-but-libtool-is-undefined][This post]] really helped. Now ZMQ is installed, but trying to use it crashes emacs!
+I attempted installing =autoconf=, =zeromq=, =automake=, and =libtool=. This could compile ZMQ by going to the =src= folder inside the =zmq= directory found in =.config/emacs/elpa=, running ~aclocal~, ~autoreconf -i~, and then ~make~ in the parent directory. Ialso set some variables as suggested in the ZMQ github page. [[https://stackoverflow.com/questions/18978252/error-libtool-library-used-but-libtool-is-undefined][This post]] really helped. I can't reproduce this, it now gives me an error when attempting to compile. But I copied the =.so= file generated before.
 
 I redownloaded ZMQ by cloning into the github repo. I ran =make= on its directory. Then opened emacs by using
 
@@ -1186,7 +1187,7 @@ We tried with the older [[https://github.com/gregsexton/ob-ipython][ob-ipython]]
 
 Tests with this older package give a strange JSON error. 
 
-*** LUA
+** LUA
 
 Emacs doesn't come with LUA highlighting by default. For now, we simply use the following
 
@@ -1196,6 +1197,40 @@ Emacs doesn't come with LUA highlighting by default. For now, we simply use the 
 (use-package lua-mode)
 
 #+end_src
+
+** LaTex
+
+A few links
+
+- [[https://michaelneuper.com/posts/efficient-latex-editing-with-emacs/][Efficient LaTeX editing with Emacs]].
+- [[https://www.reddit.com/r/emacs/comments/g8ecpj/comment/foo64ge/][Advice on LaTeX with Emacs and keybindings]].
+
+Especially the first link seems useful, especially with DOOM. We should also check that everything works fine with orgmode.
+
+We won't install =preview-latex= on mobile since we're not running graphical Emacs (for now).
+
+We start by importing and configuring AUCTeX
+
+#+begin_src emacs-lisp
+
+;; LaTeX support
+(use-package tex
+  :ensure auctex
+  :config
+    ;; Enable "document parsing" (suggested by the manual)
+    (setq TeX-auto-save t) 
+    (setq TeX-parse-self t)
+    (setq lsp-tex-server 'texlab))
+
+(use-package cdlatex
+  :after tex)
+
+(use-package evil-tex
+  :after tex)
+
+#+end_src
+
+Read the manual for its many features. A useful feature is =TeX-fold-mode=, look it up.
 
 ** Company Mode
 
