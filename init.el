@@ -596,19 +596,17 @@
       'org-babel-load-languages
 	'((emacs-lisp . t)
 	  (python . t)
-      (jupyter . t) ;Currently not working
+      (jupyter . t)
       ;(ipython . t)
+      (julia-vterm . t)
     )) ;See the python section
 )
 
-(defun org-babel-tangle-config ()
- (when (string-equal (buffer-file-name)
-	(expand-file-name "~/.config/custom_emacs/config_emacs.org"))
-;; dynamic scoping to the rescue
-  (let ((org-confirm-babel-evaluate nil))
-   (org-babel-tangle))))
-
-(add-hook 'org-mode-hook (lambda () (add-hook 'save-after-hook #'org-babel-tangle-config)))
+(use-package org-auto-tangle
+  :defer t
+  :hook (org-mode . org-auto-tangle-mode)
+  :config
+  (setq org-auto-tangle-default t))
 
 (defun glsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -715,6 +713,27 @@
 
 (use-package evil-tex
   :after tex)
+
+(use-package cc-mode
+  :hook (c-mode-common . cc-mode-setup)
+  :custom
+  (c-basic-offset 4)
+  (c-default-style "linux")
+  :config
+  (defun cc-mode-setup ()
+    (c-set-offset 'case-label '+)
+    (setq-local comment-start "//"
+                comment-end ""
+                tab-width 4)))
+
+(use-package julia-ts-mode)
+(use-package julia-vterm)
+;;(add-hook 'julia-mode-hook #'julia-vterm-mode)
+(use-package ob-julia-vterm)
+(setq lsp-julia-default-environment "~/.julia/environments/v1.10")
+(use-package julia-snail
+  :ensure t
+  :hook (julia-mode . julia-snail-mode))
 
 (use-package company
   :after lsp-mode
