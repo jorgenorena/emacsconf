@@ -463,6 +463,13 @@
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
+(defun org-journal-find-location () 
+  ;; Open today's journal, but specify a non-nil prefix argument in order to 
+  ;; inhibit inserting the heading; org-capture will insert the heading. (org-journal-new-entry t) 
+  (unless (eq org-journal-file-type 'daily) (org-narrow-to-subtree)) 
+  (goto-char (point-max))) 
+
+
 ;; --- ORG MODE! ---
 
 (setq evil-want-C-i-jump nil)  
@@ -540,18 +547,9 @@
       ("tt" "Task" entry (file+olp "~/org/Tasks.org" "Inbox")
            "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
 
-      ("j" "Journal Entries")
-      ("jj" "Journal" entry
-           (file+olp+datetree "~/org/Journal.org")
-           "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-           ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
-           :clock-in :clock-resume
-           :empty-lines 1)
-      ("jm" "Meeting" entry
-           (file+olp+datetree "~/org/Journal.org")
-           "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-           :clock-in :clock-resume
-           :empty-lines 1)))
+      ("j" "Journal entry" plain (function org-journal-find-location) 
+         "** %(format-time-string org-journal-time-format)%^{Title}\n%i%?" 
+         :jump-to-captured t :immediate-finish t)))
 
   ;; Capture keybindings
   (define-key global-map (kbd "C-c j")
@@ -608,6 +606,17 @@
   :config
   (setq org-auto-tangle-default t))
 
+(use-package org-journal 
+  :ensure t 
+  :defer t 
+  :init ;; Change default prefix key
+    ; needs to be set before loading org-journal 
+    (setq org-journal-prefix-key "C-c j ") 
+  :config 
+    (setq org-journal-dir "~/org/journal/" 
+          org-journal-date-format "%A, %d %B %Y"
+          org-journal-file-type 'monthly))
+
 (defun glsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
@@ -654,7 +663,7 @@
 
 (use-package yasnippet
   :after lsp-mode 
-  :init (global-yas-mode))
+  :config (yas-global-mode 1))
 
 (use-package yasnippet-snippets
   :after yasnippet)
